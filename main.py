@@ -15,7 +15,7 @@ if __name__ == "__main__":
         print("nRF Sniffer for Bluetooth LE was found!")
         create_todays_directory()
         #sniffer.run_tshark("COM5-4.4", todays_date)
-        output_source_addresses("outputs\\16-12-2024.json")
+        output_source_addresses(f"outputs\\{todays_date}\\{todays_date}"+".json")
     else:
         print("nRF Sniffer for Bluetooth LE was not found!")
         print("Exiting program!")
