@@ -6,10 +6,10 @@ class Sniffer():
 
     def run_tshark(self, input_interface, output_json):
         """
-        Run the tshark command and stream the output into a JSON file.
-        
-        :param input_interface: The input interface (e.g., 'COM5-4.4').
-        :param output_json: The name of the output JSON file (e.g., 'output.json').
+            Run the tshark command and stream the output into a JSON file.
+            
+            :param input_interface: The input interface (e.g., 'COM5-4.4').
+            :param output_json: The name of the output JSON file (e.g., 'output.json').
         """
         # Construct the tshark command
         command = [
