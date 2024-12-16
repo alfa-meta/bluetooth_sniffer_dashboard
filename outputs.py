@@ -22,6 +22,14 @@ def create_todays_directory():
         formate and creates a directory in outputs directory with the same name.
     """
 
-    today = date.today().strftime("%d-%m-%Y")
+    today = get_current_date()
     directory = f"outputs\\{today}"
     ensure_directory_exists(directory)
+
+def get_current_date():
+    """
+        get_current_date is a function that returns the current date in
+        dd-mm-yyyy format
+    """
+    today = date.today().strftime("%d-%m-%Y")
+    return today
