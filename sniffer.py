@@ -2,6 +2,7 @@ import subprocess
 
 class Sniffer():
     def __init__(self):
+        self.number_of_packets = "300"
         print("Initialising Sniffer Object")
 
     def run_tshark(self, input_interface, output_json):
@@ -14,9 +15,9 @@ class Sniffer():
         # Construct the tshark command
         command = [
             "tshark",
-            "-i", input_interface,  # Input interface
+            "-i", input_interface,   # Input interface
             "-T", "json",            # Output in JSON format
-            "-c", "200"
+            "-c", self.number_of_packets
         ]
         
         try:
