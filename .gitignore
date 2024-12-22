@@ -1,3 +1,5 @@
 /outputs
 .env
 __pycache__
+
+config.json
