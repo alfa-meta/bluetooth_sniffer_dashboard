@@ -120,8 +120,7 @@ class Sniffer():
         if matched_addresses:
             print("\nMatched Addresses:")
             for address, count in matched_addresses:
-                #if self.has_three_minutes_passed:
-                    #send_email(f"Matched Address:\n    {address}:{count}")
                 print(f"{address}: {count}")
+            send_email(f"Matched Addresses:\n    {matched_addresses}")
         else:
             print("\nNo BLE devices matched any source addresses.")
