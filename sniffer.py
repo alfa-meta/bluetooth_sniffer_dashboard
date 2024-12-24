@@ -1,5 +1,6 @@
 import subprocess
 import os
+import math
 from datetime import datetime, timedelta
 from email_sender import send_email, import_json_file
 
@@ -68,30 +69,42 @@ class Sniffer():
         
         return ble_devices
 
-    def extract_source_addresses(self, json_file):
+    def extract_addresses_and_rssi(self, json_file):
         data = import_json_file(path=json_file)
-        source_address_counts = {}
+        address_rssi_counts = {}
 
         for packet in data:
             try:
                 layers = packet["_source"]["layers"]
                 btle_layer = layers.get("btle", {})
+                nordic_ble_layer = layers.get("nordic_ble", {})
+                
                 source_address = btle_layer.get("btle.advertising_address")
-                if source_address:
-                    if source_address in source_address_counts:
-                        source_address_counts[source_address] += 1
+                rssi = nordic_ble_layer.get("nordic_ble.rssi")
+
+                if source_address and rssi:
+                    if source_address in address_rssi_counts:
+                        address_rssi_counts[source_address]["count"] += 1
+                        address_rssi_counts[source_address]["rssi"].append(int(rssi))
                     else:
-                        source_address_counts[source_address] = 1
+                        address_rssi_counts[source_address] = {
+                            "count": 1,
+                            "rssi": [int(rssi)]
+                        }
             except KeyError:
                 continue
 
-        source_address_list = [(address, count) for address, count in source_address_counts.items()]
+        address_rssi_list = [
+            (address, data["count"], sum(data["rssi"]) / len(data["rssi"]))
+            for address, data in address_rssi_counts.items()
+        ]
 
-        return source_address_list
+        return address_rssi_list
+
 
     def output_source_addresses(self, json_file_path: str):
         # Extract source addresses from the JSON file
-        addresses = self.extract_source_addresses(json_file_path)
+        addresses = self.extract_addresses_and_rssi(json_file_path)
         # Load BLE devices from the .env file
         env_file_path = '.env'
         ble_devices = self.load_env_file(env_file_path)
@@ -109,18 +122,43 @@ class Sniffer():
         # Convert BLE device addresses to lowercase for case-insensitive matching
         ble_device_addresses = {key: value.lower() for key, value in ble_devices.items()}
 
-        for address, count in addresses:
+        for address, count, average_rssi in addresses:
             # Compare lowercase source address with BLE device addresses
             if address.lower() in ble_device_addresses.values():
-                matched_addresses.append((address, count))
+                matched_addresses.append((address, count, average_rssi))
 
-            print(f"{address}: {count}")
+            print(f"{address}: Count={count}, Average RSSI={average_rssi:.2f} dBm")
 
         # Display matches
         if matched_addresses:
             print("\nMatched Addresses:")
-            for address, count in matched_addresses:
-                print(f"{address}: {count}")
+            for address, count, average_rssi in matched_addresses:
+                print(f"{address}: Count={count}, Average RSSI={average_rssi:.2f} dBm")
             send_email(f"Matched Addresses:\n    {matched_addresses}")
         else:
             print("\nNo BLE devices matched any source addresses.")
+
+    def calculate_distance(self, rssi, tx_power):
+        """
+        Calculate the distance between the beacon and peripheral using RSSI.
+        
+        :param rssi: The received signal strength indicator (in dBm).
+        :param tx_power: The measured signal strength at 1 meter (in dBm).
+        :return: Estimated distance in meters.
+        """
+        # # Example usage
+        # rssi_value = -65  # Example RSSI value in dBm
+        # tx_power_value = -59  # Example TX power in dBm (adjust as per your beacon specs)
+
+        # distance = calculate_distance(rssi_value, tx_power_value)
+        # print(f"Estimated distance: {distance:.2f} meters")
+
+        if rssi == 0:
+            return -1  # Cannot determine distance
+
+        # Path-loss model for distance calculation
+        ratio = rssi / tx_power
+        if ratio < 1.0:
+            return math.pow(10, ratio)
+        else:
+            return math.pow(10, (tx_power - rssi) / (10 * 2))
