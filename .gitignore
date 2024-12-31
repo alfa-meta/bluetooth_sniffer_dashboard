@@ -1,5 +1,6 @@
 /outputs
 .env
 __pycache__
+ble-venv
 
 config.json
