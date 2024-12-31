@@ -36,6 +36,12 @@ class Sniffer():
             print("Tshark is not installed or not found in the PATH.")
 
     def has_three_minutes_passed(self):
+        """
+            Checks if three minutes have passed since last time a check has been made.
+            This is so that the user does not get spammed with notifications. So a notification every three minutes
+
+            :return three_minutes_passed: Boolean value if three minutes have passed.
+        """
         # Define the time of the last check
         last_check_time = self.last_check - timedelta(minutes=3)
 
@@ -51,6 +57,8 @@ class Sniffer():
     def load_env_file(self, file_path):
         """
             Load the .env file and extract BLE device information.
+
+            :return ble_devices: list of all ble_devices that have been set in the .env file
         """
         if not os.path.exists(file_path):
             print(f"File not found: {file_path}")
@@ -70,6 +78,15 @@ class Sniffer():
         return ble_devices
 
     def extract_addresses_and_rssi(self, json_file):
+        """
+            Imports json file
+            Check for packets
+            Separates traffic from nordic ble sniffer
+            Counts the number of packets found in the file per MAC Address.
+
+            :param json_file: captured packets in json format form Wireshark.
+            :return adress_rssi_list: returs the list of all counted up MAC Addresses.
+        """
         data = import_json_file(path=json_file)
         address_rssi_counts = {}
 
@@ -103,6 +120,17 @@ class Sniffer():
 
 
     def output_source_addresses(self, json_file_path: str):
+        """
+            Gets all the addresses from json_file
+            Loads target ble_devices from .env file.
+            And checks if any of them have matching MAC Addresses.
+
+            If any of them do. MAC Addresses are printed out, and an email 
+            is sent as a notification that MAC Addresses are in the vicinity.
+
+            :param json_file_path: File path to extracted tshark packets.
+        """
+
         # Extract source addresses from the JSON file
         addresses = self.extract_addresses_and_rssi(json_file_path)
         # Load BLE devices from the .env file
@@ -140,11 +168,11 @@ class Sniffer():
 
     def calculate_distance(self, rssi, tx_power):
         """
-        Calculate the distance between the beacon and peripheral using RSSI.
-        
-        :param rssi: The received signal strength indicator (in dBm).
-        :param tx_power: The measured signal strength at 1 meter (in dBm).
-        :return: Estimated distance in meters.
+            Calculate the distance between the beacon and peripheral using RSSI.
+            
+            :param rssi: The received signal strength indicator (in dBm).
+            :param tx_power: The measured signal strength at 1 meter (in dBm).
+            :return: Estimated distance in meters.
         """
         # # Example usage
         # rssi_value = -65  # Example RSSI value in dBm

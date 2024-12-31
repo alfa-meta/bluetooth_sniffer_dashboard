@@ -30,6 +30,8 @@ def get_current_date():
     """
         get_current_date is a function that returns the current date in
         dd-mm-yyyy format
+
+        :return today: current date
     """
     today = date.today().strftime("%d-%m-%Y")
     return today
