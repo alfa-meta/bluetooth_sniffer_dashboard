@@ -1,6 +1,12 @@
 import sqlite3
 from datetime import datetime
 
+
+"""
+    WORK IN PROGRESS. CURRENTLY NOT IN USE
+"""
+
+
 def connect_db():
     return sqlite3.connect('outputs/devices.db')
 
