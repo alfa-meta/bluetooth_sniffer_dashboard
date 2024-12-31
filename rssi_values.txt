@@ -1,0 +1,12 @@
+Distance = 1 meter:
+    78:02:b7:16:11:c4: Count=133, Average RSSI=-77.96 dBm
+    0d:2b:57:c0:20:96: Count=48, Average RSSI=-82.27 dBm
+    fa:6e:bf:2e:33:00: Count=86, Average RSSI=-77.13 dBm
+
+Distance = 2 meters:
+    78:02:b7:16:11:c4: Count=127, Average RSSI=-65.51 dBm
+    fa:6e:bf:2e:33:00: Count=45, Average RSSI=-81.96 dBm
+    0d:2b:57:c0:20:96: Count=27, Average RSSI=-86.48 dBm
+
+Distance = 5 meters:
+    
