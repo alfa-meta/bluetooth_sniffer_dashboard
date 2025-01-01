@@ -131,10 +131,40 @@ def add_user(username: str, password: str, email: str):
         conn.close()
 
 def display_all_users():
-    print("All Users")
+    conn = connect_db()
+    cursor = conn.cursor()
+    
+    cursor.execute("SELECT * FROM user")
+    users = cursor.fetchall()
+    if users:
+        print("All Users:")
+        for user in users:
+            print(f"UID: {user[0]}, Username: {user[1]}, Email: {user[3]}")
+    else:
+        print("No users found.")
+    conn.close()
 
-def query_user_data_by_email():
-    print("User data by Email")
+def query_user_data_by_email(email: str):
+    conn = connect_db()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM user WHERE email = ?", (email,))
+    user = cursor.fetchone()
+    if not user:
+        print(f"No user found with email '{email}'.")
+        conn.close()
+        return None  # Return None if no user found
+
+    user_dict = {
+        "uid": user[0],
+        "username": user[1],
+        "password": user[2],
+        "email": user[3]
+    }
+
+    conn.close()
+    return user_dict
+
 
 
 def display_database():
@@ -166,9 +196,15 @@ def main():
     create_tables()
 
     # Example usage
-    add_user(username="Administrator", password="nRF52840", email="example@examplemail.com") #Default Credentials
-    create_device(mac_address="AA:BB:CC:DD:EE:FF", device_name="Device1", last_seen=0, email="john.doe@example.com")
-    update_device(mac_address="AA:BB:CC:DD:EE:FF", device_name="")
+    add_user(username="Administrator", password="nRF52840", email="example@examplemail.com")  # Default Credentials
+    default_user = query_user_data_by_email("example@examplemail.com")  # Correct email used here
+    
+    if default_user:  # Ensure default_user is not None before proceeding
+        create_device(mac_address="AA:BB:CC:DD:EE:FF", device_name="Device1", last_seen=0, email="john.doe@example.com")
+        create_device(mac_address="AA:BB:CC:11:22:33", device_name="TestDevice1", last_seen=0, email=default_user["email"])
+        update_device(mac_address="AA:BB:CC:DD:EE:FF", device_name="")
+    else:
+        print("Default user not found; aborting further operations.")
 
 if __name__ == "__main__":
     main()
