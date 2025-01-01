@@ -17,7 +17,8 @@ def create_tables():
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS user (
         uid INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
+        username TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL,
         email TEXT UNIQUE NOT NULL
     )
     ''')
@@ -25,7 +26,7 @@ def create_tables():
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS device (
         mac_address TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
+        device_name TEXT NOT NULL,
         last_seen INTEGER NOT NULL,
         email TEXT NOT NULL,
         FOREIGN KEY (email) REFERENCES user(email)
@@ -35,31 +36,31 @@ def create_tables():
     conn.commit()
     conn.close()
 
-def create_device(mac_address, name, last_seen, email):
+def create_device(mac_address, device_name, last_seen, email):
     conn = connect_db()
     cursor = conn.cursor()
     
     try:
-        cursor.execute('''INSERT INTO device (mac_address, name, last_seen, email) VALUES (?, ?, ?, ?)''',
-                       (mac_address, name, last_seen, email))
+        cursor.execute('''INSERT INTO device (mac_address, device_name, last_seen, email) VALUES (?, ?, ?, ?)''',
+                       (mac_address, device_name, last_seen, email))
         conn.commit()
         print(f"Device with MAC Address {mac_address} added successfully.")
-        print(mac_address, name, last_seen, email)
+        print(mac_address, device_name, last_seen, email)
     except sqlite3.IntegrityError as e:
         print(f"Error: {e}")
     finally:
         conn.close()
 
-def update_device(mac_address, name=None, last_seen=None, email=None):
+def update_device(mac_address, device_name=None, last_seen=None, email=None):
     conn = connect_db()
     cursor = conn.cursor()
     
     fields = []
     values = []
 
-    if name is not None:  # Allow empty strings
-        fields.append("name = ?")
-        values.append(name)
+    if device_name is not None:  # Allow empty strings
+        fields.append("device_name = ?")
+        values.append(device_name)
     if last_seen is not None:
         fields.append("last_seen = ?")
         values.append(last_seen)
@@ -99,7 +100,7 @@ def delete_device(mac_address):
     print(f"Device with MAC Address {mac_address} deleted successfully.")
     conn.close()
 
-def add_user(name, email):
+def add_user(username, email):
     conn = connect_db()
     cursor = conn.cursor()
 
@@ -110,9 +111,9 @@ def add_user(name, email):
         return
 
     try:
-        cursor.execute('''INSERT INTO user (name, email) VALUES (?, ?)''', (name, email))
+        cursor.execute('''INSERT INTO user (username, email) VALUES (?, ?)''', (username, email))
         conn.commit()
-        print(f"User {name} with email {email} added successfully.")
+        print(f"User {username} with email {email} added successfully.")
     except sqlite3.IntegrityError as e:
         print(f"Error: {e}")
     finally:
@@ -149,9 +150,9 @@ def main():
     create_tables()
 
     # Example usage
-    add_user("John Doe", "john.doe@example.com")
-    create_device("AA:BB:CC:DD:EE:FF", "Device1", 0, "john.doe@example.com")
-    update_device("AA:BB:CC:DD:EE:FF", name="")
+    add_user(username="Administrator", password="nRF52840", email="example@examplemail.com") #Default Credentials
+    create_device(mac_address="AA:BB:CC:DD:EE:FF", device_name="Device1", last_seen=0, email="john.doe@example.com")
+    update_device(mac_address="AA:BB:CC:DD:EE:FF", device_name="")
 
 if __name__ == "__main__":
     main()
