@@ -4,3 +4,4 @@ __pycache__
 ble-venv
 
 config.json
+pastebin.py

@@ -1,6 +1,7 @@
 from interfaces import *
 from outputs import *
 from sniffer import Sniffer
+from db import fetch_all_users, fetch_all_devices
 import math
 
 
@@ -23,6 +24,9 @@ def estimate_tx_power(rssi, distance):
     return tx_power
 
 if __name__ == "__main__":
+    ## Make sure database exists before running this code
+    user_data = fetch_all_users()
+    device_data = fetch_all_devices()
     interfaces = get_tshark_interfaces()
     interface_found = check_for_nrf_sniffer(interfaces)
     todays_date = str(get_current_date())

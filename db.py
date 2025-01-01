@@ -109,6 +109,30 @@ def delete_device(mac_address: str):
     print(f"Device with MAC Address {mac_address} deleted successfully.")
     conn.close()
 
+def fetch_all_devices():
+    conn = connect_db()
+    cursor = conn.cursor()
+
+    print("Fetching all Devices from device")
+    
+    cursor.execute("SELECT * FROM device")
+    devices = cursor.fetchall()
+    device_dict: dict = {}
+
+    if devices:
+        for device in devices:
+            print(device)
+            uid = f"{device[0]}"
+            device_dict[uid] = {
+                "mac_address": device[0],
+                "device_name": device[1], 
+                "last_seen": device[2], 
+                "email": device[3]
+            }
+
+    conn.close()
+    return device_dict
+
 ###### User ###########
 
 def add_user(username: str, password: str, email: str):
@@ -130,6 +154,30 @@ def add_user(username: str, password: str, email: str):
     finally:
         conn.close()
 
+def fetch_all_users():
+    conn = connect_db()
+    cursor = conn.cursor()
+
+    print("Fetching all Users from user")
+    
+    cursor.execute("SELECT * FROM user")
+    users = cursor.fetchall()
+    user_dict: dict = {}
+
+    if users:
+        for user in users:
+            print(user)
+            uid = f"{user[0]}"
+            user_dict[uid] = {
+                "uid": user[0],
+                "username": user[1], 
+                "password": user[2], 
+                "email": user[3]
+            }
+
+    conn.close()
+    return user_dict
+
 def display_all_users():
     conn = connect_db()
     cursor = conn.cursor()
@@ -139,9 +187,10 @@ def display_all_users():
     if users:
         print("All Users:")
         for user in users:
-            print(f"UID: {user[0]}, Username: {user[1]}, Email: {user[3]}")
+            print(f"uid: {user[0]}, username: {user[1]}, email: {user[3]}")
     else:
         print("No users found.")
+
     conn.close()
 
 def query_user_data_by_email(email: str):
@@ -190,22 +239,21 @@ def display_database():
         print("No devices found.")
     conn.close()
 
+## Example usage
 
+# def main():
+#     create_tables()
 
-def main():
-    create_tables()
-
-    # Example usage
-    add_user(username="Administrator", password="nRF52840", email="example@examplemail.com")  # Default Credentials
-    default_user = query_user_data_by_email("example@examplemail.com")  # Correct email used here
+#     add_user(username="Administrator", password="nRF52840", email="example@examplemail.com")  # Default Credentials
+#     default_user = query_user_data_by_email("example@examplemail.com")  # Correct email used here
     
-    if default_user:  # Ensure default_user is not None before proceeding
-        create_device(mac_address="AA:BB:CC:DD:EE:FF", device_name="Device1", last_seen=0, email="john.doe@example.com")
-        create_device(mac_address="AA:BB:CC:11:22:33", device_name="TestDevice1", last_seen=0, email=default_user["email"])
-        update_device(mac_address="AA:BB:CC:DD:EE:FF", device_name="")
-    else:
-        print("Default user not found; aborting further operations.")
+#     if default_user:  # Ensure default_user is not None before proceeding
+#         create_device(mac_address="AA:BB:CC:DD:EE:FF", device_name="Device1", last_seen=0, email="john.doe@example.com")
+#         create_device(mac_address="AA:BB:CC:11:22:33", device_name="TestDevice1", last_seen=0, email=default_user["email"])
+#         update_device(mac_address="AA:BB:CC:DD:EE:FF", device_name="")
+#     else:
+#         print("Default user not found; aborting further operations.")
 
-if __name__ == "__main__":
-    main()
-    display_database()
+# if __name__ == "__main__":
+#     main()
+#     display_database()
