@@ -8,7 +8,10 @@ from datetime import datetime
 
 
 def connect_db():
-    return sqlite3.connect('outputs/devices.db')
+    conn = sqlite3.connect('outputs/devices.db')
+    # Enable foreign keys in sqlite
+    conn.execute("PRAGMA foreign_keys = ON")
+    return conn
 
 def create_tables():
     conn = connect_db()
@@ -29,14 +32,17 @@ def create_tables():
         device_name TEXT NOT NULL,
         last_seen INTEGER NOT NULL,
         email TEXT NOT NULL,
-        FOREIGN KEY (email) REFERENCES user(email)
+        FOREIGN KEY (email) REFERENCES user(email) ON DELETE CASCADE
     )
     ''')
 
     conn.commit()
     conn.close()
 
-def create_device(mac_address, device_name, last_seen, email):
+
+###### Device ###########
+
+def create_device(mac_address: str, device_name: str, last_seen: int, email: str):
     conn = connect_db()
     cursor = conn.cursor()
     
@@ -47,16 +53,19 @@ def create_device(mac_address, device_name, last_seen, email):
         print(f"Device with MAC Address {mac_address} added successfully.")
         print(mac_address, device_name, last_seen, email)
     except sqlite3.IntegrityError as e:
-        print(f"Error: {e}")
+        if "FOREIGN KEY constraint failed" in str(e):
+            print(f"Error: The email '{email}' does not exist in the Users table.")
+        else:
+            print(f"Error: {e}")
     finally:
         conn.close()
 
-def update_device(mac_address, device_name=None, last_seen=None, email=None):
+def update_device(mac_address: str, device_name=None, last_seen=None, email=None):
     conn = connect_db()
     cursor = conn.cursor()
     
-    fields = []
-    values = []
+    fields: list = []
+    values: list = []
 
     if device_name is not None:  # Allow empty strings
         fields.append("device_name = ?")
@@ -85,7 +94,7 @@ def update_device(mac_address, device_name=None, last_seen=None, email=None):
         conn.close()
 
 
-def delete_device(mac_address):
+def delete_device(mac_address: str):
     conn = connect_db()
     cursor = conn.cursor()
 
@@ -100,7 +109,9 @@ def delete_device(mac_address):
     print(f"Device with MAC Address {mac_address} deleted successfully.")
     conn.close()
 
-def add_user(username, email):
+###### User ###########
+
+def add_user(username: str, password: str, email: str):
     conn = connect_db()
     cursor = conn.cursor()
 
@@ -111,13 +122,19 @@ def add_user(username, email):
         return
 
     try:
-        cursor.execute('''INSERT INTO user (username, email) VALUES (?, ?)''', (username, email))
+        cursor.execute('''INSERT INTO user (username, password, email) VALUES (?, ?, ?)''', (username, password, email))
         conn.commit()
         print(f"User {username} with email {email} added successfully.")
     except sqlite3.IntegrityError as e:
         print(f"Error: {e}")
     finally:
         conn.close()
+
+def display_all_users():
+    print("All Users")
+
+def query_user_data_by_email():
+    print("User data by Email")
 
 
 def display_database():
@@ -141,7 +158,6 @@ def display_database():
             print(device)
     else:
         print("No devices found.")
-
     conn.close()
 
 
