@@ -5,11 +5,15 @@ from datetime import datetime, timedelta
 from email_sender import send_email, import_json_file
 
 class Sniffer():
-    def __init__(self, number_of_packets: int):
+    def __init__(self, number_of_packets: int, user_data: list, device_data: list):
+        print("Initialising Sniffer Object")
         self.number_of_packets = str(number_of_packets)
         self.last_check = datetime.now()
+        self.user_data: list = user_data
+        self.device_data: list = device_data
 
-        print("Initialising Sniffer Object")
+        print(f"{len(user_data)} users found in the Database")
+        print(f"{len(device_data)} devices found in the Database")
 
     def run_tshark(self, input_interface, output_json):
         """
@@ -54,28 +58,28 @@ class Sniffer():
 
         return three_minutes_passed
 
-    def load_env_file(self, file_path):
-        """
-            Load the .env file and extract BLE device information.
+    # def load_env_file(self, file_path):
+    #     """
+    #         Load the .env file and extract BLE device information.
 
-            :return ble_devices: list of all ble_devices that have been set in the .env file
-        """
-        if not os.path.exists(file_path):
-            print(f"File not found: {file_path}")
-            return None
+    #         :return ble_devices: list of all ble_devices that have been set in the .env file
+    #     """
+    #     if not os.path.exists(file_path):
+    #         print(f"File not found: {file_path}")
+    #         return None
 
-        ble_devices = {}
-        with open(file_path, 'r') as file:
-            for line in file:
-                # Ignore empty lines or comments
-                if line.strip() and not line.strip().startswith('#'):
-                    key, value = line.split('=', 1)
-                    key = key.strip()
-                    value, *comment = value.split('#', 1)
-                    value = value.strip().strip('"').strip("'")  # Clean quotes if present
-                    ble_devices[key] = value
+    #     ble_devices = {}
+    #     with open(file_path, 'r') as file:
+    #         for line in file:
+    #             # Ignore empty lines or comments
+    #             if line.strip() and not line.strip().startswith('#'):
+    #                 key, value = line.split('=', 1)
+    #                 key = key.strip()
+    #                 value, *comment = value.split('#', 1)
+    #                 value = value.strip().strip('"').strip("'")  # Clean quotes if present
+    #                 ble_devices[key] = value
         
-        return ble_devices
+    #     return ble_devices
 
     def extract_addresses_and_rssi(self, json_file):
         """
@@ -121,50 +125,46 @@ class Sniffer():
 
     def output_source_addresses(self, json_file_path: str):
         """
-            Gets all the addresses from json_file
-            Loads target ble_devices from .env file.
-            And checks if any of them have matching MAC Addresses.
-
-            If any of them do. MAC Addresses are printed out, and an email 
-            is sent as a notification that MAC Addresses are in the vicinity.
+            Processes source MAC addresses from JSON file and matches them with BLE device MAC addresses.
 
             :param json_file_path: File path to extracted tshark packets.
         """
-
         # Extract source addresses from the JSON file
         addresses = self.extract_addresses_and_rssi(json_file_path)
-        # Load BLE devices from the .env file
-        env_file_path = '.env'
-        ble_devices = self.load_env_file(env_file_path)
+        
+        # Use self.device_data directly
+        ble_devices = self.device_data
 
         if not ble_devices:
-            print("No BLE devices loaded from .env file.")
+            print("No BLE devices loaded.")
             return
 
         print("BLE Devices:")
-        print(ble_devices)
+        print([{device['mac_address']: device['device_name']} for device in ble_devices])
 
         print("\nSource Addresses:")
         matched_addresses = []
 
-        # Convert BLE device addresses to lowercase for case-insensitive matching
-        ble_device_addresses = {key: value.lower() for key, value in ble_devices.items()}
+        # Convert BLE device MAC addresses to lowercase for case-insensitive matching
+        ble_device_map = {device['mac_address'].lower(): device['device_name'] for device in ble_devices}
 
         for address, count, average_rssi in addresses:
-            # Compare lowercase source address with BLE device addresses
-            if address.lower() in ble_device_addresses.values():
-                matched_addresses.append((address, count, average_rssi))
+            # Compare lowercase source address with BLE MAC addresses
+            if address.lower() in ble_device_map:
+                device_name = ble_device_map[address.lower()]
+                matched_addresses.append((address, count, average_rssi, device_name))
 
             print(f"{address}: Count={count}, Average RSSI={average_rssi:.2f} dBm")
 
         # Display matches
         if matched_addresses:
             print("\nMatched Addresses:")
-            for address, count, average_rssi in matched_addresses:
-                print(f"{address}: Count={count}, Average RSSI={average_rssi:.2f} dBm")
+            for address, count, average_rssi, device_name in matched_addresses:
+                print(f"{address} ({device_name}): Count={count}, Average RSSI={average_rssi:.2f} dBm")
             send_email(f"Matched Addresses:\n    {matched_addresses}")
         else:
             print("\nNo BLE devices matched any source addresses.")
+
 
     def calculate_distance(self, rssi, tx_power):
         """
@@ -172,7 +172,8 @@ class Sniffer():
             
             :param rssi: The received signal strength indicator (in dBm).
             :param tx_power: The measured signal strength at 1 meter (in dBm).
-            :return: Estimated distance in meters.
+            
+            Returns: Estimated distance in meters.
         """
         # # Example usage
         # rssi_value = -65  # Example RSSI value in dBm

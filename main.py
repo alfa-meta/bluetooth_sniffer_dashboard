@@ -30,7 +30,7 @@ if __name__ == "__main__":
     interfaces = get_tshark_interfaces()
     interface_found = check_for_nrf_sniffer(interfaces)
     todays_date = str(get_current_date())
-    sniffer = Sniffer(25)
+    sniffer = Sniffer(50, user_data=user_data, device_data=device_data)
 
     if interface_found:
         print("nRF Sniffer for Bluetooth LE was found!")

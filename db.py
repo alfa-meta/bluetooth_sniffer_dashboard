@@ -117,21 +117,21 @@ def fetch_all_devices():
     
     cursor.execute("SELECT * FROM device")
     devices = cursor.fetchall()
-    device_dict: dict = {}
+    device_list = []
 
     if devices:
         for device in devices:
             print(device)
-            uid = f"{device[0]}"
-            device_dict[uid] = {
+            device_list.append({
                 "mac_address": device[0],
                 "device_name": device[1], 
                 "last_seen": device[2], 
                 "email": device[3]
-            }
+            })
 
     conn.close()
-    return device_dict
+    return device_list
+
 
 ###### User ###########
 
@@ -158,25 +158,24 @@ def fetch_all_users():
     conn = connect_db()
     cursor = conn.cursor()
 
-    print("Fetching all Users from user")
+    print("Fetching all Users from user table...")
     
     cursor.execute("SELECT * FROM user")
     users = cursor.fetchall()
-    user_dict: dict = {}
+    user_list = []
 
     if users:
         for user in users:
             print(user)
-            uid = f"{user[0]}"
-            user_dict[uid] = {
+            user_list.append({
                 "uid": user[0],
-                "username": user[1], 
-                "password": user[2], 
+                "username": user[1],
+                "password": user[2],
                 "email": user[3]
-            }
+            })
 
     conn.close()
-    return user_dict
+    return user_list
 
 def display_all_users():
     conn = connect_db()

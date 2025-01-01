@@ -54,13 +54,13 @@ def check_for_nrf_sniffer(interfaces: list):
         interfaces list. And checks for COM5-4.4 if it exists then it returns 
         a True Boolean. Otherwise returns False.
 
-        :param interfaces: list of all interfaces found by tshark
+        :param interfaces: list of all interfaces found by tshark.
+
         Returns:
             boolean: a boolean value based on whether or not nRF sniffer was found
     """
     sniffer_boolean = False
     if interfaces:
-        print("Available interfaces:")
         for interface in interfaces:
             #print(f"{interface['index']}. {interface['name']} - {interface['description']}")
             if interface['name'] == 'COM5-4.4':
