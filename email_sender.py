@@ -25,8 +25,8 @@ def send_email(text: str):
     sender_email = data.get('username')
     receiver_email = data.get('receiver')
     password = data.get('password')
-    subject = "BLE-Notification"
-    body = f"{text} \n\n\nBle-Notification by nRF MDK Sniffer"
+    subject = "BLE Notification"
+    body = f"Target user is within the vicinity.\n\n{text} \n\n\nBLE Notification by nRF MDK Sniffer"
 
     # Create the email
     msg = MIMEMultipart()

@@ -161,7 +161,13 @@ class Sniffer():
             print("\nMatched Addresses:")
             for address, count, average_rssi, device_name in matched_addresses:
                 print(f"{address} ({device_name}): Count={count}, Average RSSI={average_rssi:.2f} dBm")
-            send_email(f"Matched Addresses:\n    {matched_addresses}")
+            
+            # Format the matched addresses for the email
+            email_content = "\n".join(
+                f"{address} ({device_name}): Count={count}, Average RSSI={average_rssi:.2f} dBm"
+                for address, count, average_rssi, device_name in matched_addresses
+            )
+            send_email(f"Matched Addresses:\n{email_content}")
         else:
             print("\nNo BLE devices matched any source addresses.")
 
