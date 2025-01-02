@@ -11,6 +11,7 @@ class Sniffer():
         self.last_check = datetime.now()
         self.user_data: list = user_data
         self.device_data: list = device_data
+        self.sniffer_mode: = "tshark"
 
         print(f"{len(user_data)} users found in the Database")
         print(f"{len(device_data)} devices found in the Database")
@@ -121,9 +122,25 @@ class Sniffer():
         ]
 
         return address_rssi_list
-
-
+    
     def output_source_addresses(self, json_file_path: str):
+        if self.sniffer_mode == "tshark":
+            self.output_source_addresses_via_tshark(json_file_path)
+            return True
+        
+        if self.sniffer_mode == "bluetoothctl":
+            self.output_source_addresses_via_blueoothctl()
+            return True
+
+        print("Sniffer mode has not been recognised.")
+
+        return None
+    
+    def output_source_addresses_via_bluetoothctl(self):
+        print("Extracting bluetooth Mac Addresses.")
+
+
+    def output_source_addresses_via_tshark(self, json_file_path: str):
         """
             Processes source MAC addresses from JSON file and matches them with BLE device MAC addresses.
 
