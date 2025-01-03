@@ -5,13 +5,13 @@ from datetime import datetime, timedelta
 from email_sender import send_email, import_json_file
 
 class Sniffer():
-    def __init__(self, number_of_packets: int, user_data: list, device_data: list):
+    def __init__(self, number_of_packets: int, user_data: list, device_data: list, sniffer_mode="tshark"):
         print("Initialising Sniffer Object")
         self.number_of_packets = str(number_of_packets)
         self.last_check = datetime.now()
         self.user_data: list = user_data
         self.device_data: list = device_data
-        self.sniffer_mode: = "tshark"
+        self.sniffer_mode: str = sniffer_mode
 
         print(f"{len(user_data)} users found in the Database")
         print(f"{len(device_data)} devices found in the Database")
