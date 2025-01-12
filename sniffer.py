@@ -79,7 +79,7 @@ class Sniffer():
 
             if error:
                 raise RuntimeError(f"Error occurred: {error.strip()}")
-
+            
             return output
 
         except Exception as e:
@@ -174,15 +174,13 @@ class Sniffer():
             return True
         
         if self.sniffer_mode == "bluetoothctl":
-            self.run_bluetoothctl()
+            output = self.run_bluetoothctl()
+            self.compare_bluetoothctl_output(output)
             return True
 
         print("Sniffer mode has not been recognised.")
 
         return None
-    
-    def output_source_addresses_via_bluetoothctl(self):
-        print("Extracting bluetooth Mac Addresses.")
 
 
     def output_source_addresses_via_tshark(self, json_file_path: str):
@@ -232,6 +230,54 @@ class Sniffer():
             send_email(f"Matched Addresses:\n{email_content}")
         else:
             print("\nNo BLE devices matched any source addresses.")
+
+    def compare_bluetoothctl_output(self, bluetoothctl_output):
+        """
+            Compares the output of bluetoothctl with the list of known BLE devices.
+
+            :param bluetoothctl_output: The output string from the bluetoothctl scan.
+            :return: A list of matched devices, including their MAC address, device name, and signal strength (if available).
+        """
+        matched_devices = []
+
+        # Extract MAC addresses and optional RSSI values from bluetoothctl output
+        # Assuming bluetoothctl output has lines like "Device MAC_ADDRESS [Device Name]"
+        lines = bluetoothctl_output.splitlines()
+        scanned_devices = {}
+        
+        for line in lines:
+            if "Device" in line:
+                # Extract MAC address and device name from the line
+                parts = line.split()
+                if len(parts) >= 2:
+                    mac_address = parts[3].strip()  # Extract MAC address
+                    device_name = " ".join(parts[4:]).strip() if len(parts) > 2 else "Unknown"  # Extract device name
+                    scanned_devices[mac_address.lower()] = device_name
+                    print(mac_address)
+
+        # Compare extracted addresses with the known BLE devices in self.device_data
+        for device in self.device_data:
+            device_mac = device['mac_address'].lower()  # BLE device MAC address from the database
+            device_name = device['device_name']        # BLE device name from the database
+
+            if device_mac in scanned_devices:
+                matched_devices.append({
+                    "mac_address": device_mac,
+                    "device_name": device_name,
+                    "scanned_device_name": scanned_devices[device_mac]
+                })
+
+        # Print and return matched devices
+        if matched_devices:
+            print("Matched devices found:")
+            for match in matched_devices:
+                print(f"MAC Address: {match['mac_address']}, "
+                    f"Device Name: {match['device_name']}, "
+                    f"Scanned Device Name: {match['scanned_device_name']}")
+        else:
+            print("No matched devices found.")
+
+        return matched_devices
 
 
     def calculate_distance(self, rssi, tx_power):
