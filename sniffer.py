@@ -1,5 +1,5 @@
 import subprocess
-import os
+import time
 import math
 from datetime import datetime, timedelta
 from email_sender import send_email, import_json_file
@@ -39,6 +39,51 @@ class Sniffer():
             print(f"Error running tshark: {e}")
         except FileNotFoundError:
             print("Tshark is not installed or not found in the PATH.")
+
+    def run_bluetoothctl(self):
+        """
+            This function interacts with the bluetoothctl command to scan for nearby Bluetooth devices,
+            and returns the output as a string.
+        """
+        try:
+            # Start the bluetoothctl process
+            process = subprocess.Popen(
+                ["bluetoothctl"],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
+            )
+            
+            # Send commands to bluetoothctl
+            commands = [
+                "power on\n",
+                "scan on\n",
+            ]
+            
+            # Write commands to the process
+            for command in commands:
+                process.stdin.write(command)
+                process.stdin.flush()
+            
+            # Allow time for scanning
+            time.sleep(10)
+            
+            # Turn off scanning and exit
+            process.stdin.write("scan off\n")
+            process.stdin.write("exit\n")
+            process.stdin.flush()
+            
+            # Capture output and errors
+            output, error = process.communicate()
+
+            if error:
+                raise RuntimeError(f"Error occurred: {error.strip()}")
+
+            return output
+
+        except Exception as e:
+            return f"An error occurred: {str(e)}"
 
     def has_three_minutes_passed(self):
         """
@@ -129,7 +174,7 @@ class Sniffer():
             return True
         
         if self.sniffer_mode == "bluetoothctl":
-            self.output_source_addresses_via_blueoothctl()
+            self.run_bluetoothctl()
             return True
 
         print("Sniffer mode has not been recognised.")

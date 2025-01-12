@@ -25,17 +25,18 @@ def estimate_tx_power(rssi, distance):
 
 if __name__ == "__main__":
     ## Make sure database exists before running this code
+    sniffer_mode = "bluetoothctl"
     user_data = fetch_all_users()
     device_data = fetch_all_devices()
     interfaces = get_tshark_interfaces()
-    interface_found = check_for_nrf_sniffer(interfaces)
+    interface_found = check_for_nrf_sniffer(interfaces=interfaces, sniffer_mode=sniffer_mode)
     todays_date = str(get_current_date())
-    sniffer = Sniffer(100, user_data=user_data, device_data=device_data)
+    sniffer = Sniffer(100, user_data=user_data, device_data=device_data, sniffer_mode=sniffer_mode)
 
     if interface_found:
         print("nRF Sniffer for Bluetooth LE was found!")
         create_todays_directory()
-        sniffer.run_tshark("COM5-4.4", todays_date)
+        ##sniffer.run_tshark("COM5-4.4", todays_date)
         sniffer.output_source_addresses(f"outputs\\{todays_date}\\{todays_date}"+".json")  
     else:
         print("nRF Sniffer for Bluetooth LE was not found!")
