@@ -33,8 +33,8 @@
 
 1. Clone the repository:
    ```bash
-   git clone <repository-url>
-   cd ble_deanonymiser```
+   git clone git@github.com:alfa-meta/ble_deanonymiser.git
+   cd ble_deanonymiser
 
 2. Install requirements (Not fully implemented):
     ```pip install -r requirements.txt```
