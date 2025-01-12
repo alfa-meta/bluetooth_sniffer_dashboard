@@ -274,6 +274,7 @@ class Sniffer():
                 print(f"MAC Address: {match['mac_address']}, "
                     f"Device Name: {match['device_name']}, "
                     f"Scanned Device Name: {match['scanned_device_name']}")
+            send_email(f"Matched Addresses:\n{matched_devices}")
         else:
             print("No matched devices found.")
 
