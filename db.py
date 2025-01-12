@@ -1,3 +1,4 @@
+import os
 import sqlite3
 from datetime import datetime
 
@@ -8,9 +9,15 @@ from datetime import datetime
 
 
 def connect_db():
+    # Ensure the 'outputs' directory exists
+    os.makedirs('outputs', exist_ok=True)
+    
+    # Connect to the database (creates the file if it doesn't exist)
     conn = sqlite3.connect('outputs/devices.db')
+    
     # Enable foreign keys in sqlite
     conn.execute("PRAGMA foreign_keys = ON")
+    
     return conn
 
 def create_tables():
