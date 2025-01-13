@@ -67,7 +67,7 @@ class Sniffer():
                 process.stdin.flush()
             
             # Allow time for scanning
-            time.sleep(10)
+            time.sleep(15)
             
             # Turn off scanning and exit
             process.stdin.write("scan off\n")

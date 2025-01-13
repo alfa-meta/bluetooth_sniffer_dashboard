@@ -40,3 +40,10 @@
     ```pip install -r requirements.txt```
 
 3.  ```python main.py```
+
+
+
+
+## TODO
+1. Test timeouts for Smartphones.
+2. Test BLE tracking devices such as the Xiaomi 
