@@ -48,7 +48,7 @@ def get_tshark_interfaces():
         print(f"An unexpected error occurred: {e}")
         return []
     
-def check_for_nrf_sniffer(interfaces: list):
+def check_for_nrf_sniffer(interfaces: list, sniffer_mode: str):
     """
         check_for_nrf_sniffer checks all the interfaces received by the 
         interfaces list. And checks for COM5-4.4 if it exists then it returns 
@@ -60,6 +60,10 @@ def check_for_nrf_sniffer(interfaces: list):
             boolean: a boolean value based on whether or not nRF sniffer was found
     """
     sniffer_boolean = False
+    
+    if sniffer_mode == "bluetoothctl":
+        return True
+    
     if interfaces:
         for interface in interfaces:
             #print(f"{interface['index']}. {interface['name']} - {interface['description']}")
