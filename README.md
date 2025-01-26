@@ -46,3 +46,7 @@ The BLE Deanonymiser is a Python-based tool designed to analyze and process Blue
 ## TODO
 1. Test timeouts for Smartphones.
 2. Test BLE tracking devices such as the Xiaomi 
+3. What happens when the device is paired but cannot see the other device.
+4. Do research on smartwatches and smartcars.
+5. Use BlueHydra to find any valuable information to be sniffed.
+6. Look for ways to defeat MAC Randomisation.
