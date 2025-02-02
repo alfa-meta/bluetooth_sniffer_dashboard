@@ -31,50 +31,18 @@ The BLE Deanonymiser is a Python-based tool designed to analyze and process Blue
 ## Installation
 
 1. Clone the repository:
-    ```bash
-    git clone <repository-url>
-    cd ble_deanonymiser-main
-    ```
+   ```bash
+   git clone git@github.com:alfa-meta/ble_deanonymiser.git
+   cd ble_deanonymiser
 
-2. Install the dependencies:
-    ```bash
-    pip install -r requirements.txt
-    ```
+2. Install requirements (Not fully implemented):
+    ```pip install -r requirements.txt```
 
-3. Configure the tool using `config-example.json`. Rename it to `config.json` and update it with your desired settings:
-    ```json
-    {
-        "email": {
-            "smtp_server": "smtp.example.com",
-            "port": 587,
-            "username": "your-email@example.com",
-            "password": "your-password"
-        },
-        "database": {
-            "type": "sqlite",
-            "name": "ble_data.db"
-        }
-    }
-    ```
+3.  ```python main.py```
 
-## Usage
 
-### Start the Application
 
-Run the main script to begin processing BLE data:
-```bash
-python main.py
-```
 
-### Correct `tshark` Command
-To generate JSON and PCAP files for BLE data processing, use the following commands:
-```bash
-tshark -i <interface-name> -T json > output.json
-```
-Replace `<interface-name>` with your BLE interface (e.g., `COM5-4.4`).
-
-### Example Workflow
-1. Run the sniffer to capture BLE data.
-2. Analyze captured data using the RSSI analyzer.
-3. Store the processed data in the database.
-4. Trigger email notifications based on specific thresholds or events.
+## TODO
+1. Test timeouts for Smartphones.
+2. Test BLE tracking devices such as the Xiaomi 
