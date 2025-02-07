@@ -3,6 +3,11 @@ import time
 import math
 from datetime import datetime, timedelta
 from email_sender import send_email, import_json_file
+import sys
+import os
+
+sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+
 
 class Sniffer():
     def __init__(self, number_of_packets: int, user_data: list, device_data: list, sniffer_mode="tshark"):
