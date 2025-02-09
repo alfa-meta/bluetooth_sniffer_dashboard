@@ -1,4 +1,6 @@
-/outputs*
+outputs/*
+outputs\*
+outputs
 .env
 __pycache__
 ble-venv
