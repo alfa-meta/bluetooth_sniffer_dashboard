@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './index.css';
+import './styles/globals.css';
 import AuthPage from './AuthPage';
 
 const root = ReactDOM.createRoot(

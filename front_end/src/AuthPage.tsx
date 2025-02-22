@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "./AuthPage.css";
+import "./styles/AuthPage.css";
 
 const AuthPage: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
