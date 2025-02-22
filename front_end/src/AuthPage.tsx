@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import "./AuthPage.css";
 
 const AuthPage: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -14,10 +15,10 @@ const AuthPage: React.FC = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="w-96 p-6 shadow-lg bg-white rounded-2xl">
-        <h2 className="text-2xl font-semibold mb-4">{isLogin ? "Login" : "Register"}</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="auth-container">
+      <div className="auth-box">
+        <h2 className="auth-title">{isLogin ? "Login" : "Register"}</h2>
+        <form onSubmit={handleSubmit} className="auth-form">
           {!isLogin && (
             <input
               type="text"
@@ -26,7 +27,7 @@ const AuthPage: React.FC = () => {
               value={formData.name}
               onChange={handleChange}
               required
-              className="w-full p-2 border rounded"
+              className="auth-input"
             />
           )}
           <input
@@ -36,7 +37,7 @@ const AuthPage: React.FC = () => {
             value={formData.email}
             onChange={handleChange}
             required
-            className="w-full p-2 border rounded"
+            className="auth-input"
           />
           <input
             type="password"
@@ -45,15 +46,15 @@ const AuthPage: React.FC = () => {
             value={formData.password}
             onChange={handleChange}
             required
-            className="w-full p-2 border rounded"
+            className="auth-input"
           />
-          <button type="submit" className="w-full bg-blue-500 text-white py-2 rounded">
+          <button type="submit" className="auth-button">
             {isLogin ? "Login" : "Register"}
           </button>
         </form>
-        <p className="text-sm mt-4 text-center">
+        <p className="auth-toggle-text">
           {isLogin ? "Don't have an account?" : "Already have an account?"}
-          <button className="text-blue-500 ml-1" onClick={() => setIsLogin(!isLogin)}>
+          <button className="auth-toggle-button" onClick={() => setIsLogin(!isLogin)}>
             {isLogin ? "Register here" : "Login here"}
           </button>
         </p>
