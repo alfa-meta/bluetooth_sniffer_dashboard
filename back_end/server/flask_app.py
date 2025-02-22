@@ -22,6 +22,7 @@ jwt = JWTManager(app)
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
+    email = db.Column(db.String(100), unique=True, nullable=False)  # Add email column
     password = db.Column(db.String(100), nullable=False)
 
 @app.route("/register", methods=["POST"])
@@ -33,9 +34,10 @@ def register():
 
         :return message: in JSON format {message : info}, number
     """
+    
     data = request.get_json()
     hashed_pw = bcrypt.generate_password_hash(data["password"]).decode("utf-8")
-    user = User(username=data["username"], password=hashed_pw)
+    user = User(username=data["username"], email=data["email"], password=hashed_pw)  # Include email
     db.session.add(user)
     db.session.commit()
     return jsonify({"message": "User created"}), 201
