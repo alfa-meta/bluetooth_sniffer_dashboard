@@ -4,20 +4,49 @@ import "./styles/AuthPage.css";
 const AuthPage: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({ email: "", password: "", name: "" });
+  const [message, setMessage] = useState("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log(isLogin ? "Logging in..." : "Registering...", formData);
+    setMessage("Processing...");
+
+    const endpoint = isLogin ? "http://127.0.0.1:5000/login" : "http://127.0.0.1:5000/register";
+    const payload = isLogin
+      ? { email: formData.email, password: formData.password }
+      : { username: formData.name, email: formData.email, password: formData.password };
+
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessage("Success! Redirecting...");
+        if (isLogin) {
+          localStorage.setItem("token", data.access_token);
+        }
+      } else {
+        setMessage(data.message || "An error occurred");
+      }
+    } catch (error) {
+      setMessage("Request failed. Please try again.");
+      console.error("Request failed:", error);
+    }
   };
 
   return (
     <div className="auth-container">
       <div className="auth-box">
         <h2 className="auth-title">{isLogin ? "Login" : "Register"}</h2>
+        {message && <p className="auth-message">{message}</p>}
         <form onSubmit={handleSubmit} className="auth-form">
           {!isLogin && (
             <input

@@ -4,10 +4,12 @@ from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+from flask_cors import CORS
 
 load_dotenv()  # Load environment variables from .env file
 
 app = Flask(__name__)
+CORS(app)
 
 # Define the correct path to devices.db
 db_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'sniffer', 'outputs', 'devices.db'))
