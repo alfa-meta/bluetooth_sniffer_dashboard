@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./styles/AuthPage.css";
 
@@ -7,6 +7,14 @@ const AuthPage: React.FC = () => {
   const [formData, setFormData] = useState({ email: "", password: "", name: "" });
   const [message, setMessage] = useState("");
   const navigate = useNavigate(); // Hook for navigation
+
+  // 🔹 Redirect if the user is already authenticated
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      navigate("/dashboard");
+    }
+  }, [navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
