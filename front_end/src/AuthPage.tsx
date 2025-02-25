@@ -1,10 +1,12 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./styles/AuthPage.css";
 
 const AuthPage: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({ email: "", password: "", name: "" });
   const [message, setMessage] = useState("");
+  const navigate = useNavigate(); // Hook for navigation
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -32,6 +34,7 @@ const AuthPage: React.FC = () => {
         setMessage("Success! Redirecting...");
         if (isLogin) {
           localStorage.setItem("token", data.access_token);
+          setTimeout(() => navigate("/dashboard"), 1000); // Redirect to Dashboard
         }
       } else {
         setMessage(data.message || "An error occurred");

@@ -1,17 +1,30 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './styles/globals.css';
-import AuthPage from './AuthPage';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import "./styles/globals.css";
+import AuthPage from "./AuthPage";
+import Dashboard from "./pages/Dashboard"; // Import the Dashboard page
 
-const root = ReactDOM.createRoot(
-  document.getElementById('root') as HTMLElement
-);
+const isAuthenticated = () => !!localStorage.getItem("token"); // Check if user is logged in
+
+const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
+
 root.render(
   <React.StrictMode>
-    <AuthPage />
+    <BrowserRouter>
+      <Routes>
+        {/* Auth Page */}
+        <Route path="/" element={<AuthPage />} />
+
+        {/* Protected Dashboard Route */}
+        <Route
+          path="/dashboard"
+          element={isAuthenticated() ? <Dashboard /> : <Navigate to="/" />}
+        />
+
+        {/* Catch all unknown routes and redirect to login */}
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
+    </BrowserRouter>
   </React.StrictMode>
 );
-
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
