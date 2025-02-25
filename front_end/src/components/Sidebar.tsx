@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 const SidebarContainer = styled.div`
   width: 250px;
-  height: 100vh;
+  height: 95vh;
   background: #1e1e2f;
   color: white;
   padding: 20px;
@@ -42,7 +42,7 @@ const LogoutButton = styled.button`
   }
 `;
 
-const databases = ["UsersDB", "OrdersDB", "ProductsDB", "LogsDB"];
+const databases = ["Admin", "Database Viewer", "Settings"];
 
 const Sidebar: React.FC = () => {
   const navigate = useNavigate();
@@ -55,7 +55,7 @@ const Sidebar: React.FC = () => {
   return (
     <SidebarContainer>
       <ContentWrapper>
-        <h2>Databases</h2>
+        <h2>Deanonimyser Dashboard</h2>
         {databases.map((db, index) => (
           <DatabaseItem key={index}>{db}</DatabaseItem>
         ))}

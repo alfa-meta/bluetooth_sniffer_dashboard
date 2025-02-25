@@ -7,11 +7,18 @@ import styled from "styled-components";
 const DashboardWrapper = styled.div`
   display: flex;
   height: 100vh;
+  overflow: hidden;
 `;
 
 const ContentWrapper = styled.div`
   flex-grow: 1;
   padding: 20px;
+  overflow: auto;
+`;
+
+const SidebarWrapper = styled.div`
+  height: 100vh;
+  overflow-y: auto;
 `;
 
 const Dashboard: React.FC = () => {
@@ -32,7 +39,9 @@ const Dashboard: React.FC = () => {
   return (
     <div>
       <DashboardWrapper>
-        <Sidebar /> {/* Include Sidebar */}
+        <SidebarWrapper>
+          <Sidebar /> {/* Include Sidebar */}
+        </SidebarWrapper>
         <ContentWrapper>
           <h1>Bluetooth Deanonimyser Dashboard</h1>
         </ContentWrapper>
