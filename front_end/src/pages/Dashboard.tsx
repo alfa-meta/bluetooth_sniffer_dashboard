@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Dashboard.css";
 import Sidebar from "../components/Sidebar"; // Import Sidebar
@@ -14,6 +14,14 @@ const ContentWrapper = styled.div`
   flex-grow: 1;
   padding: 20px;
   overflow: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+`;
+
+const Title = styled.h1`
+  text-align: center;
+  margin-top: 20px;
 `;
 
 const SidebarWrapper = styled.div`
@@ -23,6 +31,7 @@ const SidebarWrapper = styled.div`
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
+  const [title, setTitle] = useState("Bluetooth Deanonimyser Dashboard");
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -31,19 +40,14 @@ const Dashboard: React.FC = () => {
     }
   }, [navigate]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/");
-  };
-
   return (
     <div>
       <DashboardWrapper>
         <SidebarWrapper>
-          <Sidebar /> {/* Include Sidebar */}
+          <Sidebar setTitle={setTitle} /> {/* Pass setTitle function to Sidebar */}
         </SidebarWrapper>
         <ContentWrapper>
-          <h1>Bluetooth Deanonimyser Dashboard</h1>
+          <Title>{title}</Title>
         </ContentWrapper>
       </DashboardWrapper>
     </div>

@@ -1,15 +1,17 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 
 const SidebarContainer = styled.div`
   width: 250px;
   height: 95vh;
-  background: #1e1e2f;
-  color: white;
+  background: var(--bg-light);
+  color: var(--text-light);
   padding: 20px;
   display: flex;
   flex-direction: column;
+  border-right: 1px solid var(--border-color);
+  box-shadow: 2px 0 5px var(--box-shadow);
 `;
 
 const ContentWrapper = styled.div`
@@ -19,32 +21,35 @@ const ContentWrapper = styled.div`
 const DatabaseItem = styled.div`
   padding: 10px;
   margin: 10px 0;
-  background: #2a2a3d;
+  background: var(--bg-dark);
   cursor: pointer;
   border-radius: 5px;
+  transition: background 0.3s;
 
   &:hover {
-    background: #3a3a4d;
+    background: var(--highlight);
+    color: var(--bg-dark);
   }
 `;
 
 const LogoutButton = styled.button`
-  background: #ff4d4d;
-  color: white;
+  background: var(--button-bg);
+  color: var(--text-light);
   border: none;
   padding: 10px;
   border-radius: 5px;
   cursor: pointer;
-  margin-top: auto; /* Pushes it to the bottom */
+  margin-top: auto;
+  transition: background 0.3s;
 
   &:hover {
-    background: #ff6666;
+    background: var(--button-hover);
   }
 `;
 
 const databases = ["Admin", "Database Viewer", "Settings"];
 
-const Sidebar: React.FC = () => {
+const Sidebar: React.FC<{ setTitle: (title: string) => void }> = ({ setTitle }) => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -57,7 +62,7 @@ const Sidebar: React.FC = () => {
       <ContentWrapper>
         <h2>Deanonimyser Dashboard</h2>
         {databases.map((db, index) => (
-          <DatabaseItem key={index}>{db}</DatabaseItem>
+          <DatabaseItem key={index} onClick={() => setTitle(db)}>{db}</DatabaseItem>
         ))}
       </ContentWrapper>
       <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
