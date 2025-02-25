@@ -1,8 +1,20 @@
-.dashboard-container {
-    text-align: center;
-    padding: 20px;
+.dashboard-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
     background-color: var(--bg-dark);
+}
+
+.dashboard-container {
+    width: 80%;
+    max-width: 900px;
+    padding: 20px;
+    text-align: center;
+    background-color: var(--bg-darker); /* Darker than bg-dark */
     color: var(--text-light);
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px var(--box-shadow);
 }
 
 .logout-button {
@@ -19,3 +31,9 @@
 .logout-button:hover {
     background-color: var(--button-hover);
 }
+
+html, body {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+  }

@@ -1,11 +1,22 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Dashboard.css";
+import Sidebar from "../components/Sidebar"; // Import Sidebar
+import styled from "styled-components";
+
+const DashboardWrapper = styled.div`
+  display: flex;
+  height: 100vh;
+`;
+
+const ContentWrapper = styled.div`
+  flex-grow: 1;
+  padding: 20px;
+`;
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
 
-  // 🔹 Redirect to login if the user is NOT authenticated
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -14,16 +25,18 @@ const Dashboard: React.FC = () => {
   }, [navigate]);
 
   const handleLogout = () => {
-    localStorage.removeItem("token"); // Remove token from storage
-    navigate("/"); // Redirect to login
+    localStorage.removeItem("token");
+    navigate("/");
   };
 
   return (
-    <div className="dashboard-container">
-      <h1>Welcome to the Dashboard!</h1>
-      <button onClick={handleLogout} className="logout-button">
-        Logout
-      </button>
+    <div>
+      <DashboardWrapper>
+        <Sidebar /> {/* Include Sidebar */}
+        <ContentWrapper>
+          <h1>Bluetooth Deanonimyser Dashboard</h1>
+        </ContentWrapper>
+      </DashboardWrapper>
     </div>
   );
 };
