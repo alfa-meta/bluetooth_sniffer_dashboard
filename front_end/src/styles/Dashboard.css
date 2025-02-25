@@ -1,18 +1,21 @@
 .dashboard-container {
     text-align: center;
     padding: 20px;
-  }
-  
-  .logout-button {
-    background-color: red;
-    color: white;
+    background-color: var(--bg-dark);
+    color: var(--text-light);
+}
+
+.logout-button {
+    background-color: var(--button-bg);
+    color: var(--text-light);
     padding: 10px 20px;
-    border: none;
+    border: 1px solid var(--border-color);
     cursor: pointer;
     margin-top: 20px;
-  }
-  
-  .logout-button:hover {
-    background-color: darkred;
-  }
-  
+    box-shadow: 2px 2px 5px var(--box-shadow);
+    transition: background-color 0.3s ease-in-out;
+}
+
+.logout-button:hover {
+    background-color: var(--button-hover);
+}
