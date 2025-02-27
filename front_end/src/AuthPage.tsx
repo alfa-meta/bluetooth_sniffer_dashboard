@@ -11,10 +11,10 @@ const AuthPage: React.FC = () => {
   // 🔹 Redirect if the user is already authenticated
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (token) {
+    if (token && window.location.pathname !== "/dashboard") {
       navigate("/dashboard", { replace: true });
     }
-  }, []);
+  }, [navigate]);
   
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -57,6 +57,9 @@ const AuthPage: React.FC = () => {
   return (
     <div className="auth-container">
       <div className="auth-box">
+        {/* Add the icon */}
+        <img src="/ble_deanonymiser_icon.png" alt="App Icon" className="auth-icon" />
+  
         <h2 className="auth-title">{isLogin ? "Login" : "Register"}</h2>
         {message && <p className="auth-message">{message}</p>}
         <form onSubmit={handleSubmit} className="auth-form">

@@ -96,3 +96,11 @@
     cursor: pointer;
     text-decoration: underline;
 }
+
+.auth-icon {
+    width: 80px; /* Adjust size as needed */
+    height: auto;
+    display: block;
+    margin: 0 auto 15px; /* Center the icon */
+  }
+  
