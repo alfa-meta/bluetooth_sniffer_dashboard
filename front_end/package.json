@@ -4,7 +4,9 @@
   "private": true,
   "dependencies": {
     "@testing-library/react": "^16.2.0",
+    "bcryptjs": "^3.0.2",
     "cra-template-typescript": "1.2.0",
+    "dotenv": "^16.4.7",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^6.29.0",
