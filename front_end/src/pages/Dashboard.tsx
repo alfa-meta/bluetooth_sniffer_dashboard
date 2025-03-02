@@ -4,6 +4,7 @@ import "../styles/Dashboard.css";
 import Sidebar from "../components/Sidebar"; // Import Sidebar
 import styled from "styled-components";
 
+
 const DashboardWrapper = styled.div`
   display: flex;
   height: 100vh;
