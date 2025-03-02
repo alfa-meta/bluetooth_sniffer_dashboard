@@ -4,13 +4,14 @@ import { useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 
 const SidebarContainer = styled.div<{ isHidden: boolean }>`
-  width: ${(props) => (props.isHidden ? "5%" : "250px")};
-  height: 95vh;
+  width: ${(props) => (props.isHidden ? "25px" : "250px")};
+  height: ${(props) => (props.isHidden ? "97.5vh" : "95vh")};
   background: var(--bg-light);
   color: var(--text-light);
-  padding: ${(props) => (props.isHidden ? "0" : "20px")};
+  padding: ${(props) => (props.isHidden ? "10px" : "20px")};
   display: flex;
   flex-direction: column;
+  flex-grow: 1;
   border-right: 1px solid var(--border-color);
   box-shadow: ${(props) => (props.isHidden ? "none" : "2px 0 5px var(--box-shadow)")};
   overflow: hidden;
@@ -19,8 +20,8 @@ const SidebarContainer = styled.div<{ isHidden: boolean }>`
   align-items: ${(props) => (props.isHidden ? "center" : "flex-start")};
 `;
 
-const ToggleButton = styled.button`
-  background: var(--button-bg);
+const ToggleButton = styled.button<{ isHidden: boolean }>`
+  background: transparent;
   color: var(--text-light);
   border: none;
   padding: 5px;
@@ -30,19 +31,23 @@ const ToggleButton = styled.button`
   
   position: absolute;
   top: 10px;
-  left: 10px;
+  right: ${(props) => (props.isHidden ? "5px" : "10px")};
   z-index: 1100;
 
   &:hover {
-    background: var(--button-hover);
+    background: transparent;
   }
 `;
 
 const ContentWrapper = styled.div<{ isHidden: boolean }>`
   flex-grow: 1;
-  display: ${(props) => (props.isHidden ? "none" : "block")};
   width: 100%;
+  height: 100%;
+  visibility: ${(props) => (props.isHidden ? "hidden" : "visible")};
+  opacity: ${(props) => (props.isHidden ? 0 : 1)};
+  transition: opacity 0.3s ease-in-out;
 `;
+
 
 const DatabaseItem = styled.div`
   padding: 10px;
@@ -62,14 +67,17 @@ const LogoutButton = styled.button`
   background: var(--button-bg);
   color: var(--text-light);
   border: none;
-  padding: 10px;
+  padding: 15px;
+  padding-left: 103px;
+  padding-right: 102px;
   border-radius: 5px;
   cursor: pointer;
-  margin-top: auto;
+  position: absolute;
+  bottom: 25px;
   transition: background 0.3s;
 
   &:hover {
-    background: var(--button-hover);
+    background: var(--red);
   }
 `;
 
@@ -86,7 +94,7 @@ const Sidebar: React.FC<{ setTitle: (title: string) => void }> = ({ setTitle }) 
 
   return (
     <SidebarContainer isHidden={isHidden}>
-      <ToggleButton onClick={() => setIsHidden(!isHidden)}>
+      <ToggleButton onClick={() => setIsHidden(!isHidden)} isHidden={isHidden}>
         {isHidden ? <FaArrowRight /> : <FaArrowLeft />}
       </ToggleButton>
       <ContentWrapper isHidden={isHidden}>
