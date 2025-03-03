@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Dashboard.css";
-import Sidebar from "../components/Sidebar"; // Import Sidebar
+import Sidebar from "../components/Sidebar";
+import Titlebar from "../components/Titlebar"; // Import Titlebar
 import styled from "styled-components";
-
 
 const DashboardWrapper = styled.div`
   display: flex;
@@ -11,23 +11,23 @@ const DashboardWrapper = styled.div`
   overflow: hidden;
 `;
 
+const SidebarWrapper = styled.div`
+  width: 290px;
+  height: 100vh;
+  overflow-y: auto;
+`;
+
+const MainContent = styled.div`
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+`;
+
 const ContentWrapper = styled.div`
   flex-grow: 1;
   padding: 20px;
   overflow: auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-`;
-
-const Title = styled.h1`
-  text-align: center;
-  margin-top: 20px;
-`;
-
-const SidebarWrapper = styled.div`
-  height: 100vh;
-  overflow-y: auto;
 `;
 
 const Dashboard: React.FC = () => {
@@ -42,16 +42,17 @@ const Dashboard: React.FC = () => {
   }, [navigate]);
 
   return (
-    <div>
-      <DashboardWrapper>
-        <SidebarWrapper>
-          <Sidebar setTitle={setTitle} /> {/* Pass setTitle function to Sidebar */}
-        </SidebarWrapper>
+    <DashboardWrapper>
+      <SidebarWrapper>
+        <Sidebar setTitle={setTitle} />
+      </SidebarWrapper>
+      <MainContent>
+        <Titlebar title={title} />
         <ContentWrapper>
-          <Title>{title}</Title>
+          {/* Other dashboard content here */}
         </ContentWrapper>
-      </DashboardWrapper>
-    </div>
+      </MainContent>
+    </DashboardWrapper>
   );
 };
 
