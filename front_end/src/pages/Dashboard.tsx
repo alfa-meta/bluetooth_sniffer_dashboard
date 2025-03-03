@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Dashboard.css";
 import Sidebar from "../components/Sidebar";
-import Titlebar from "../components/Titlebar"; // Import Titlebar
+import Titlebar from "../components/Titlebar";
+import Settings from "../components/Settings";
 import styled from "styled-components";
 
 const DashboardWrapper = styled.div`
@@ -28,6 +29,9 @@ const ContentWrapper = styled.div`
   flex-grow: 1;
   padding: 20px;
   overflow: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `;
 
 const Dashboard: React.FC = () => {
@@ -49,7 +53,7 @@ const Dashboard: React.FC = () => {
       <MainContent>
         <Titlebar title={title} />
         <ContentWrapper>
-          {/* Other dashboard content here */}
+          {title === "Settings" ? <Settings /> : <p>Dashboard</p>}
         </ContentWrapper>
       </MainContent>
     </DashboardWrapper>
