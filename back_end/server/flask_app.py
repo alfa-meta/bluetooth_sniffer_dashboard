@@ -9,7 +9,7 @@ from flask_cors import CORS
 load_dotenv()  # Load environment variables from .env file
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, supports_credentials=True)
 
 # Define the correct path to devices.db
 db_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'sniffer', 'outputs', 'devices.db'))
@@ -73,11 +73,18 @@ def login():
 @app.route("/protected", methods=["GET"])
 @jwt_required()
 def protected():
-    """ JWT-protected route returning the logged-in user. """
+    """ JWT-protected route returning the logged-in user's details. """
     try:
-        current_user = get_jwt_identity()
-        return jsonify(logged_in_as=current_user)
-    except Exception:
+        current_user_email = get_jwt_identity()
+        user = User.query.filter_by(email=current_user_email).first()
+
+        if user:
+            return jsonify({"email": user.email}), 200
+
+        print("User not found")
+        return jsonify({"message": "User not found"}), 404
+    except Exception as e:
+        print(e)
         return jsonify({"message": "An error occurred, please try again later"}), 500
 
 if __name__ == "__main__":

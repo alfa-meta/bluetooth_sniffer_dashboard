@@ -7,7 +7,7 @@ const AuthPage: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({ email: "", password: "", name: "" });
   const [message, setMessage] = useState("");
-  const navigate = useNavigate(); // Hook for navigation
+  const navigate = useNavigate();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -23,33 +23,28 @@ const AuthPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setMessage("Processing...");
-  
-    // 🔹 Use a fixed salt from .env
+    
     const salt = "$2a$10$abcdefghijklmnopqrstuv";
-  
-    // 🔹 Use bcrypt.hashSync() for consistent hashing
     const hashedPassword = bcrypt.hashSync(formData.password, salt);
-  
+    
     const endpoint = isLogin ? "http://127.0.0.1:5000/login" : "http://127.0.0.1:5000/register";
     const payload = isLogin
       ? { email: formData.email, password: hashedPassword }
       : { username: formData.name, email: formData.email, password: hashedPassword };
-  
+    
     try {
       const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-  
+    
       const data = await response.json();
-  
+    
       if (response.ok) {
         setMessage("Success! Redirecting...");
-        if (isLogin) {
-          localStorage.setItem("token", data.access_token);
-          setTimeout(() => navigate("/dashboard"), 1000);
-        }
+        localStorage.setItem("token", data.access_token);
+        setTimeout(() => navigate("/dashboard"), 1000);
       } else {
         setMessage(data.message || "An error occurred");
       }
@@ -58,7 +53,6 @@ const AuthPage: React.FC = () => {
       console.error("Request failed:", error);
     }
   };
-  
 
   return (
     <div className="auth-container">

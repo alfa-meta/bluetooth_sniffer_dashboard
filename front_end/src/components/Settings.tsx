@@ -1,11 +1,11 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 
 const SettingsWrapper = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center; /* Center content vertically */
+  justify-content: center;
   height: calc(100vh - 60px);
   width: 100%;
   position: relative;
@@ -19,7 +19,7 @@ const SettingsGrid = styled.div`
   width: 60%;
   max-width: 600px;
   align-items: center;
-  justify-content: center; /* Center content horizontally */
+  justify-content: center;
 `;
 
 const Label = styled.div`
@@ -37,7 +37,7 @@ const Content = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  justify-content: center; /* Center content */
+  justify-content: center;
   align-items: center;
 `;
 
@@ -84,6 +84,36 @@ const themes = [
 ];
 
 const Settings: React.FC = () => {
+  const [email, setEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUserEmail = async () => {
+      const token = localStorage.getItem("token"); // Assuming the JWT token is stored here
+      if (!token) return;
+
+      try {
+        const response = await fetch("http://localhost:5000/protected", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          setEmail(data.email);
+        } else {
+          console.error("Error fetching user data:", data.message);
+        }
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    };
+
+    fetchUserEmail();
+  }, []);
+
   const changeTheme = (className: string) => {
     document.body.className = className;
   };
@@ -101,7 +131,7 @@ const Settings: React.FC = () => {
         </Content>
 
         <Label>E-mail</Label>
-        <Content>example@mail.com</Content>
+        <Content>{email || "Loading..."}</Content>
 
         <Label>Change Password</Label>
         <Content><Button>Change Password</Button></Content>
