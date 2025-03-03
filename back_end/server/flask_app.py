@@ -84,8 +84,26 @@ def protected():
         print("User not found")
         return jsonify({"message": "User not found"}), 404
     except Exception as e:
-        print(e)
+        print("Error: ", e)
         return jsonify({"message": "An error occurred, please try again later"}), 500
+
+@app.route("/users", methods=["GET"])
+@jwt_required()
+def get_all_users():
+    """ JWT-protected route to get all users. """
+    try:
+        users = User.query.all()
+        user_list = [
+            {"uid": user.uid, "username": user.username, "email": user.email, "password": user.password}
+            for user in users
+        ]
+        print(user_list)
+        return jsonify(user_list), 200
+    except Exception as e:
+        print("Error:", e)
+        return jsonify({"message": "An error occurred, please try again later"}), 500
+
+
 
 if __name__ == "__main__":
     with app.app_context():

@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
 
 const SettingsWrapper = styled.div`
+  width: 100%;
+  height: 100%;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  height: calc(100vh - 60px);
-  width: 100%;
-  position: relative;
-  padding-top: 40px;
+  overflow: auto;
 `;
 
 const SettingsGrid = styled.div`
@@ -85,11 +85,16 @@ const themes = [
 
 const Settings: React.FC = () => {
   const [email, setEmail] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUserEmail = async () => {
-      const token = localStorage.getItem("token"); // Assuming the JWT token is stored here
-      if (!token) return;
+      const token = localStorage.getItem("token");
+      if (!token) {
+        localStorage.removeItem("token");
+        navigate("/");
+        return;
+      }
 
       try {
         const response = await fetch("http://localhost:5000/protected", {
@@ -105,14 +110,18 @@ const Settings: React.FC = () => {
           setEmail(data.email);
         } else {
           console.error("Error fetching user data:", data.message);
+          localStorage.removeItem("token");
+          navigate("/");
         }
       } catch (error) {
         console.error("Error:", error);
+        localStorage.removeItem("token");
+        navigate("/");
       }
     };
 
     fetchUserEmail();
-  }, []);
+  }, [navigate]);
 
   const changeTheme = (className: string) => {
     document.body.className = className;
@@ -121,15 +130,6 @@ const Settings: React.FC = () => {
   return (
     <SettingsWrapper>
       <SettingsGrid>
-        <Label>Themes</Label>
-        <Content>
-          {themes.map((theme) => (
-            <ThemeItem key={theme.name} onClick={() => changeTheme(theme.className)}>
-              {theme.name}
-            </ThemeItem>
-          ))}
-        </Content>
-
         <Label>E-mail</Label>
         <Content>{email || "Loading..."}</Content>
 
@@ -138,6 +138,14 @@ const Settings: React.FC = () => {
 
         <Label>Database Location</Label>
         <Content><Input type="text" placeholder="Enter database path" /></Content>
+        <Label>Themes</Label>
+        <Content>
+          {themes.map((theme) => (
+            <ThemeItem key={theme.name} onClick={() => changeTheme(theme.className)}>
+              {theme.name}
+            </ThemeItem>
+          ))}
+        </Content>
       </SettingsGrid>
     </SettingsWrapper>
   );
