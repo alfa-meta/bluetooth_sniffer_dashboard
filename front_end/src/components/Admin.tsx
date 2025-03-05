@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom"
 import styled from "styled-components";
 import axios from "axios";
 
@@ -11,7 +12,6 @@ const AdminWrapper = styled.div`
   align-items: center;
   overflow: auto;
 `;
-
 
 const Table = styled.table`
   width: 80%;
@@ -33,30 +33,64 @@ const Td = styled.td`
   border-bottom: 1px solid var(--border-color);
 `;
 
+const Button = styled.button`
+  padding: 5px 10px;
+  background: red;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+  &:hover {
+    background: darkred;
+  }
+`;
+
 const Admin: React.FC = () => {
-  const [users, setUsers] = useState<{ uid: number; username: string; email: string, password: string }[]>([]);
+  const [users, setUsers] = useState<{ uid: number; username: string; password: string; email: string;}[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setError("No token found, please login");
-        return;
-      }
-      try {
-        const response = await axios.get("http://127.0.0.1:5000/users", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setUsers(response.data);
-      } catch (err) {
-        setError("Failed to fetch user data");
-      }
-    };
     fetchUsers();
   }, []);
+
+  const fetchUsers = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setError("No token found, please login");
+      localStorage.removeItem("token");
+      navigate("/");
+      return;
+    }
+    try {
+      const response = await axios.get("http://127.0.0.1:5000/users", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUsers(response.data);
+    } catch (err) {
+      setError("Failed to fetch user data");
+      localStorage.removeItem("token");
+      navigate("/");
+    }
+  };
+
+  const handleDelete = async (uid: number) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setError("No token found, please login");
+      localStorage.removeItem("token");
+      navigate("/");
+      return;
+    }
+    try {
+      await axios.delete(`http://127.0.0.1:5000/delete_user/${uid}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUsers(users.filter((user) => user.uid !== uid)); // Remove user from state
+    } catch (err) {
+      setError("Failed to delete user");
+    }
+  };
 
   return (
     <AdminWrapper>
@@ -71,6 +105,7 @@ const Admin: React.FC = () => {
               <Th>Username</Th>
               <Th>Email</Th>
               <Th>Password</Th>
+              <Th>Actions</Th>
             </tr>
           </thead>
           <tbody>
@@ -78,8 +113,11 @@ const Admin: React.FC = () => {
               <tr key={user.uid}>
                 <Td>{user.uid}</Td>
                 <Td>{user.username}</Td>
-                <Td>{user.email}</Td>
                 <Td>{user.password}</Td>
+                <Td>{user.email}</Td>
+                <Td>
+                  <Button onClick={() => handleDelete(user.uid)}>Delete</Button>
+                </Td>
               </tr>
             ))}
           </tbody>

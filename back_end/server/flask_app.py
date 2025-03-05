@@ -26,9 +26,8 @@ class User(db.Model):
     __tablename__ = "USER"
     uid = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
-    password = db.Column(db.String(100), nullable=False)  # Move password before email
+    password = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
-
 
 @app.route("/register", methods=["POST"])
 def register():
@@ -103,7 +102,21 @@ def get_all_users():
         print("Error:", e)
         return jsonify({"message": "An error occurred, please try again later"}), 500
 
+@app.route("/delete_user/<int:user_id>", methods=["DELETE"])
+@jwt_required()
+def delete_user(user_id):
+    """ JWT-protected route to delete a specific user by user ID. """
+    try:
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({"message": "User not found"}), 404
 
+        db.session.delete(user)
+        db.session.commit()
+        return jsonify({"message": "User deleted successfully"}), 200
+    except Exception as e:
+        print("Error:", e)
+        return jsonify({"message": "An error occurred, please try again later"}), 500
 
 if __name__ == "__main__":
     with app.app_context():
