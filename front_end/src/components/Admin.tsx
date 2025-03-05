@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom"
+import React, { useEffect, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import axios from "axios";
 
@@ -46,15 +46,11 @@ const Button = styled.button`
 `;
 
 const Admin: React.FC = () => {
-  const [users, setUsers] = useState<{ uid: number; username: string; password: string; email: string;}[]>([]);
+  const [users, setUsers] = useState<{ uid: number; username: string; password: string; email: string }[]>([]);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     const token = localStorage.getItem("token");
     if (!token) {
       setError("No token found, please login");
@@ -72,7 +68,11 @@ const Admin: React.FC = () => {
       localStorage.removeItem("token");
       navigate("/");
     }
-  };
+  }, [navigate]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
   const handleDelete = async (uid: number) => {
     const token = localStorage.getItem("token");
@@ -113,8 +113,8 @@ const Admin: React.FC = () => {
               <tr key={user.uid}>
                 <Td>{user.uid}</Td>
                 <Td>{user.username}</Td>
-                <Td>{user.password}</Td>
                 <Td>{user.email}</Td>
+                <Td>{user.password}</Td>
                 <Td>
                   <Button onClick={() => handleDelete(user.uid)}>Delete</Button>
                 </Td>

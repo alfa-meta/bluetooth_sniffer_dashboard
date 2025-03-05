@@ -3,10 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@testing-library/react": "^16.2.0",
+    "@testing-library/react": "^14.3.0",
     "axios": "^1.8.1",
     "bcryptjs": "^3.0.2",
-    "cra-template-typescript": "1.2.0",
     "dotenv": "^16.4.7",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -14,7 +13,6 @@
     "react-router-dom": "^6.29.0",
     "react-scripts": "5.0.1",
     "styled-components": "^6.1.15",
-    "tsc": "^2.0.4",
     "web-vitals": "^4.2.4"
   },
   "scripts": {
@@ -42,7 +40,6 @@
     ]
   },
   "devDependencies": {
-    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@testing-library/jest-dom": "^6.6.3",
     "@types/jest": "^29.5.14",
     "@types/react": "^18.3.18",
@@ -51,5 +48,10 @@
     "postcss": "^8.5.3",
     "tailwindcss": "^4.0.8",
     "typescript": "^5.8.2"
+  },
+  "overrides": {
+    "react-scripts": {
+      "typescript": "^5"
+    }
   }
 }
