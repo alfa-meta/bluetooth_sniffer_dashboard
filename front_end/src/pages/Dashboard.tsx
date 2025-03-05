@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom";
 import "../styles/Dashboard.css";
 import Sidebar from "../components/Sidebar";
 import Titlebar from "../components/Titlebar";
-import Settings from "../components/Settings";
 import Admin from "../components/Admin"; // Corrected import
+import Devices from "../components/Devices";
+import Settings from "../components/Settings";
 import styled from "styled-components";
 
 const DashboardWrapper = styled.div`
@@ -30,9 +31,12 @@ const ContentWrapper = styled.div`
   flex-grow: 1;
   overflow: auto;
   display: flex;
+  justify-content: center;
+  align-items: center;
   width: 100%;
   height: 100%;
 `;
+
 
 
 const Dashboard: React.FC = () => {
@@ -54,7 +58,7 @@ const Dashboard: React.FC = () => {
       <MainContent>
         <Titlebar title={title} />
         <ContentWrapper>
-          {title === "Settings" ? <Settings /> : title === "Admin" ? <Admin /> : <p>Dashboard</p>}
+          {title === "Devices" ? <Devices />: title === "Settings" ? <Settings /> : title === "Admin" ? <Admin /> : <p>Dashboard</p>}
         </ContentWrapper>
       </MainContent>
     </DashboardWrapper>

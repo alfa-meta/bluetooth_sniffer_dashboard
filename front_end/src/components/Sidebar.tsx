@@ -81,7 +81,7 @@ const LogoutButton = styled.button`
   }
 `;
 
-const databases = ["Admin", "Database Viewer", "Settings"];
+const databases = ["Admin", "Devices", "Settings"];
 
 const Sidebar: React.FC<{ setTitle: (title: string) => void }> = ({ setTitle }) => {
   const navigate = useNavigate();

@@ -46,7 +46,7 @@ const Button = styled.button`
 `;
 
 const Admin: React.FC = () => {
-  const [users, setUsers] = useState<{ uid: number; username: string; password: string; email: string }[]>([]);
+  const [users, setUsers] = useState<{ uid: number; username: string; password: string; email: string; }[]>([]);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
