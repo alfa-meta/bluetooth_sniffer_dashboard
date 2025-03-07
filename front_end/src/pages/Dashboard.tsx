@@ -42,6 +42,7 @@ const ContentWrapper = styled.div`
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const [title, setTitle] = useState("Bluetooth Deanonimyser Dashboard");
+  const [isSidebarHidden, setIsSidebarHidden] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -52,10 +53,10 @@ const Dashboard: React.FC = () => {
 
   return (
     <DashboardWrapper>
-      <SidebarWrapper>
-        <Sidebar setTitle={setTitle} />
+      <SidebarWrapper style={{ width: isSidebarHidden ? "55px" : "290px" }}>
+        <Sidebar setTitle={setTitle} setSidebarHidden={setIsSidebarHidden} />
       </SidebarWrapper>
-      <MainContent>
+      <MainContent style={{ marginLeft: isSidebarHidden ? "5px" : "5px" }}>
         <Titlebar title={title} />
         <ContentWrapper>
           {title === "Devices" ? <Devices />: title === "Settings" ? <Settings /> : title === "Admin" ? <Admin /> : <p>Dashboard</p>}
@@ -64,5 +65,6 @@ const Dashboard: React.FC = () => {
     </DashboardWrapper>
   );
 };
+
 
 export default Dashboard;

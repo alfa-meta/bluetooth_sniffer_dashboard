@@ -83,18 +83,18 @@ const LogoutButton = styled.button`
 
 const pages = ["Admin", "Devices", "Settings"];
 
-const Sidebar: React.FC<{ setTitle: (title: string) => void }> = ({ setTitle }) => {
+const Sidebar: React.FC<{ setTitle: (title: string) => void, setSidebarHidden: (hidden: boolean) => void }> = ({ setTitle, setSidebarHidden }) => {
   const navigate = useNavigate();
   const [isHidden, setIsHidden] = useState(false);
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/");
+  const handleToggle = () => {
+    setIsHidden(!isHidden);
+    setSidebarHidden(!isHidden);  // Pass state up to Dashboard
   };
 
   return (
     <SidebarContainer isHidden={isHidden}>
-      <ToggleButton onClick={() => setIsHidden(!isHidden)} isHidden={isHidden}>
+      <ToggleButton onClick={handleToggle} isHidden={isHidden}>
         {isHidden ? <FaArrowRight /> : <FaArrowLeft />}
       </ToggleButton>
       <ContentWrapper isHidden={isHidden}>
@@ -102,7 +102,10 @@ const Sidebar: React.FC<{ setTitle: (title: string) => void }> = ({ setTitle }) 
         {pages.map((page, index) => (
           <SideBarItem key={index} onClick={() => setTitle(page)}>{page}</SideBarItem>
         ))}
-        <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
+        <LogoutButton onClick={() => {
+          localStorage.removeItem("token");
+          navigate("/");
+        }}>Logout</LogoutButton>
       </ContentWrapper>
     </SidebarContainer>
   );
