@@ -49,7 +49,7 @@ const ContentWrapper = styled.div<{ isHidden: boolean }>`
 `;
 
 
-const DatabaseItem = styled.div`
+const SideBarItem = styled.div`
   padding: 10px;
   margin: 10px 0;
   background: var(--bg-dark);
@@ -81,7 +81,7 @@ const LogoutButton = styled.button`
   }
 `;
 
-const databases = ["Admin", "Devices", "Settings"];
+const pages = ["Admin", "Devices", "Settings"];
 
 const Sidebar: React.FC<{ setTitle: (title: string) => void }> = ({ setTitle }) => {
   const navigate = useNavigate();
@@ -99,8 +99,8 @@ const Sidebar: React.FC<{ setTitle: (title: string) => void }> = ({ setTitle }) 
       </ToggleButton>
       <ContentWrapper isHidden={isHidden}>
         <h2>Deanonimyser Dashboard</h2>
-        {databases.map((db, index) => (
-          <DatabaseItem key={index} onClick={() => setTitle(db)}>{db}</DatabaseItem>
+        {pages.map((page, index) => (
+          <SideBarItem key={index} onClick={() => setTitle(page)}>{page}</SideBarItem>
         ))}
         <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
       </ContentWrapper>
