@@ -13,11 +13,17 @@ def register():
         if User.query.filter_by(email=data["email"]).first():
             return jsonify({"message": "Email already registered"}), 400
 
+        password = data.get("password")
         hashed_pw = bcrypt.generate_password_hash(data["password"]).decode("utf-8")
         user = User(username=data["username"], email=data["email"], password=hashed_pw)
         db.session.add(user)
         db.session.commit()
-        return jsonify({"message": "User created"}), 201
+
+        if user and bcrypt.check_password_hash(user.password, password):
+            access_token = create_access_token(identity=user.email)
+            return jsonify(access_token=access_token), 200
+
+        return jsonify({"message": "Failed to Register an Account"}), 201
     except Exception as e:
         print("Error:", e)
         return jsonify({"message": "An error occurred, please try again later"}), 500
