@@ -23,9 +23,7 @@ const Button = styled.button`
   background: var(--button-bg);
   color: var(--text-light);
   border: none;
-  padding: 15px;
-  padding-left: 25px;
-  padding-right: 25px;
+  padding: 15px 25px;
   border-radius: 5px;
   cursor: pointer;
   transition: background 0.3s;
@@ -57,9 +55,15 @@ const Td = styled.td`
 
 const Devices: React.FC = () => {
   const [devices, setDevices] = useState<
-    { mac_address: string; device_name: string; last_seen: string; email: string }[]
+    {
+      mac_address: string;
+      device_name: string;
+      last_seen: string;
+      email: string;
+    }[]
   >([]);
   const [error, setError] = useState<string | null>(null);
+  const [isAdding, setIsAdding] = useState(false);
   const navigate = useNavigate();
 
   const fetchDevices = useCallback(async () => {
@@ -86,11 +90,13 @@ const Devices: React.FC = () => {
     fetchDevices();
   }, [fetchDevices]);
 
-  return (
+  return isAdding ? (
+    <AddNewDevice setIsAdding={setIsAdding} fetchDevices={fetchDevices} />
+  ) : (
     <DevicesWrapper>
       <h2>Device List</h2>
       <ButtonContainer>
-        <Button>Add New Device</Button>
+        <Button onClick={() => setIsAdding(true)}>Add New Device</Button>
       </ButtonContainer>
       {error ? (
         <p>{error}</p>
@@ -117,6 +123,94 @@ const Devices: React.FC = () => {
         </Table>
       )}
     </DevicesWrapper>
+  );
+};
+
+const AddNewDevice: React.FC<{
+  setIsAdding: (value: boolean) => void;
+  fetchDevices: () => void;
+}> = ({ setIsAdding, fetchDevices }) => {
+  const [formData, setFormData] = useState({
+    mac_address: "",
+    device_name: "",
+    last_seen: "",
+    email: "",
+  });
+  const [message, setMessage] = useState("");
+  const token = localStorage.getItem("token");
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setMessage("Adding device...");
+
+    try {
+      await axios.post("http://127.0.0.1:5000/add_device", formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      setMessage("Device added successfully!");
+      fetchDevices(); // Refresh device list
+      setTimeout(() => setIsAdding(false), 1000);
+    } catch (error) {
+      setMessage("Failed to add device. Please try again.");
+    }
+  };
+
+  return (
+    <div className="device-container">
+      <h2 className="device-title">Add New Device</h2>
+      {message && <p className="device-message">{message}</p>}
+      <form className="device-form" onSubmit={handleSubmit}>
+        <input
+          type="text"
+          name="mac_address"
+          placeholder="MAC Address (e.g., AA:BB:CC:11:22:33)"
+          value={formData.mac_address}
+          onChange={handleChange}
+          required
+          pattern="^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$"
+          title="Enter a valid MAC Address in format: AA:BB:CC:11:22:33"
+          className="device-input"
+        />
+        <input
+          type="text"
+          name="device_name"
+          placeholder="Device Name"
+          value={formData.device_name}
+          onChange={handleChange}
+          required
+          className="device-input"
+        />
+        <input
+          type="email"
+          name="email"
+          placeholder="Email"
+          value={formData.email}
+          onChange={handleChange}
+          required
+          className="device-input"
+        />
+        <div className="device-button-container">
+          <button type="submit" className="device-button">
+            Submit
+          </button>
+          <button
+            type="button"
+            className="device-button cancel"
+            onClick={() => setIsAdding(false)}
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
   );
 };
 
