@@ -3,15 +3,19 @@ import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 
+
+const horizontalPadding: number  = 18
+
 const SidebarContainer = styled.div<{ isHidden: boolean }>`
   width: ${(props) => (props.isHidden ? "25px" : "250px")};
-  height: ${(props) => (props.isHidden ? "97.5vh" : "95vh")};
+  height: ${(props) => (props.isHidden ? "100vh" : "100vh")};
   background: var(--bg-light);
   color: var(--text-light);
-  padding: ${(props) => (props.isHidden ? "10px" : "20px")};
   display: flex;
   flex-direction: column;
   flex-grow: 1;
+  padding-left: ${horizontalPadding}px;
+  padding-right: ${horizontalPadding}px;
   border-right: 1px solid var(--border-color);
   box-shadow: ${(props) => (props.isHidden ? "none" : "2px 0 5px var(--box-shadow)")};
   overflow: hidden;
@@ -73,7 +77,7 @@ const LogoutButton = styled.button`
   border-radius: 5px;
   cursor: pointer;
   position: absolute;
-  bottom: 25px;
+  bottom: 20px;
   transition: background 0.3s;
 
   &:hover {
