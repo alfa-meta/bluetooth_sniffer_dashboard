@@ -1,10 +1,14 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity
 from flask_bcrypt import Bcrypt
+from config import Config
 from .models import Device, User, db
 
 main_bp = Blueprint('main', __name__)
 bcrypt = Bcrypt()
+
+
+PASSWORD_SALT = Config.PASSWORD_SALT
 
 @main_bp.route("/register", methods=["POST"])
 def register():
@@ -14,16 +18,15 @@ def register():
             return jsonify({"message": "Email already registered"}), 400
 
         password = data.get("password")
-        hashed_pw = bcrypt.generate_password_hash(data["password"]).decode("utf-8")
+        hashed_pw = bcrypt.generate_password_hash(password + PASSWORD_SALT).decode("utf-8")
+
         user = User(username=data["username"], email=data["email"], password=hashed_pw)
         db.session.add(user)
         db.session.commit()
-
-        if user and bcrypt.check_password_hash(user.password, password):
-            access_token = create_access_token(identity=user.email)
-            return jsonify(access_token=access_token), 200
-
-        return jsonify({"message": "Failed to Register an Account"}), 201
+        
+        access_token = create_access_token(identity=user.email)
+        return jsonify(access_token=access_token), 200
+    
     except Exception as e:
         print("Error:", e)
         return jsonify({"message": "An error occurred, please try again later"}), 500
@@ -34,17 +37,22 @@ def login():
         data = request.get_json()
         email = data.get("email")
         password = data.get("password")
-
+        
         if not email or not password:
             return jsonify({"message": "Email and password are required"}), 400
 
         user = User.query.filter_by(email=email).first()
-
-        if user and bcrypt.check_password_hash(user.password, password):
+        
+        if user and bcrypt.check_password_hash(user.password, password + PASSWORD_SALT):
             access_token = create_access_token(identity=user.email)
             return jsonify(access_token=access_token), 200
-
+        
         return jsonify({"message": "Invalid credentials"}), 401
+    
+    except Exception as e:
+        print("Error:", e)
+        return jsonify({"message": "An error occurred, please try again later"}), 500
+    
     except Exception as e:
         print("Error:", e)
         return jsonify({"message": "An error occurred, please try again later"}), 500
