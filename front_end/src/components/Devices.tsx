@@ -13,6 +13,28 @@ const DevicesWrapper = styled.div`
   overflow: auto;
 `;
 
+const ButtonContainer = styled.div`
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+`;
+
+const Button = styled.button`
+  background: var(--button-bg);
+  color: var(--text-light);
+  border: none;
+  padding: 15px;
+  padding-left: 25px;
+  padding-right: 25px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s;
+
+  &:hover {
+    background: var(--red);
+  }
+`;
+
 const Table = styled.table`
   width: 80%;
   border-collapse: collapse;
@@ -67,6 +89,9 @@ const Devices: React.FC = () => {
   return (
     <DevicesWrapper>
       <h2>Device List</h2>
+      <ButtonContainer>
+        <Button>Add New Device</Button>
+      </ButtonContainer>
       {error ? (
         <p>{error}</p>
       ) : (
