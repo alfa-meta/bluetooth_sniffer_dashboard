@@ -3,11 +3,10 @@ import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 
-
-const horizontalPadding: number  = 18
+const horizontalPadding: number = 18;
 
 const SidebarContainer = styled.div<{ isHidden: boolean }>`
-  width: ${(props) => (props.isHidden ? "25px" : "250px")};
+  width: ${(props) => (props.isHidden ? "15px" : "250px")};
   height: ${(props) => (props.isHidden ? "100vh" : "100vh")};
   background: var(--bg-light);
   color: var(--text-light);
@@ -17,7 +16,8 @@ const SidebarContainer = styled.div<{ isHidden: boolean }>`
   padding-left: ${horizontalPadding}px;
   padding-right: ${horizontalPadding}px;
   border-right: 1px solid var(--border-color);
-  box-shadow: ${(props) => (props.isHidden ? "none" : "2px 0 5px var(--box-shadow)")};
+  box-shadow: ${(props) =>
+    props.isHidden ? "none" : "2px 0 5px var(--box-shadow)"};
   overflow: hidden;
   transition: width 0.3s ease-in-out, padding 0.3s ease-in-out;
   position: relative;
@@ -32,7 +32,7 @@ const ToggleButton = styled.button<{ isHidden: boolean }>`
   border-radius: 5px;
   cursor: pointer;
   transition: background 0.3s;
-  
+
   position: absolute;
   top: 10px;
   right: ${(props) => (props.isHidden ? "5px" : "10px")};
@@ -51,7 +51,6 @@ const ContentWrapper = styled.div<{ isHidden: boolean }>`
   opacity: ${(props) => (props.isHidden ? 0 : 1)};
   transition: opacity 0.3s ease-in-out;
 `;
-
 
 const SideBarItem = styled.div`
   padding: 10px;
@@ -87,13 +86,16 @@ const LogoutButton = styled.button`
 
 const pages = ["Admin", "Devices", "Settings"];
 
-const Sidebar: React.FC<{ setTitle: (title: string) => void, setSidebarHidden: (hidden: boolean) => void }> = ({ setTitle, setSidebarHidden }) => {
+const Sidebar: React.FC<{
+  setTitle: (title: string) => void;
+  setSidebarHidden: (hidden: boolean) => void;
+}> = ({ setTitle, setSidebarHidden }) => {
   const navigate = useNavigate();
   const [isHidden, setIsHidden] = useState(false);
 
   const handleToggle = () => {
     setIsHidden(!isHidden);
-    setSidebarHidden(!isHidden);  // Pass state up to Dashboard
+    setSidebarHidden(!isHidden); // Pass state up to Dashboard
   };
 
   return (
@@ -104,12 +106,18 @@ const Sidebar: React.FC<{ setTitle: (title: string) => void, setSidebarHidden: (
       <ContentWrapper isHidden={isHidden}>
         <h2>Deanonimyser Dashboard</h2>
         {pages.map((page, index) => (
-          <SideBarItem key={index} onClick={() => setTitle(page)}>{page}</SideBarItem>
+          <SideBarItem key={index} onClick={() => setTitle(page)}>
+            {page}
+          </SideBarItem>
         ))}
-        <LogoutButton onClick={() => {
-          localStorage.removeItem("token");
-          navigate("/");
-        }}>Logout</LogoutButton>
+        <LogoutButton
+          onClick={() => {
+            localStorage.removeItem("token");
+            navigate("/");
+          }}
+        >
+          Logout
+        </LogoutButton>
       </ContentWrapper>
     </SidebarContainer>
   );

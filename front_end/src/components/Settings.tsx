@@ -134,14 +134,21 @@ const Settings: React.FC = () => {
         <Content>{email || "Loading..."}</Content>
 
         <Label>Change Password</Label>
-        <Content><Button>Change Password</Button></Content>
+        <Content>
+          <Button>Change Password</Button>
+        </Content>
 
         <Label>Database Location</Label>
-        <Content><Input type="text" placeholder="Enter database path" /></Content>
+        <Content>
+          <Input type="text" placeholder="Enter database path" />
+        </Content>
         <Label>Themes</Label>
         <Content>
           {themes.map((theme) => (
-            <ThemeItem key={theme.name} onClick={() => changeTheme(theme.className)}>
+            <ThemeItem
+              key={theme.name}
+              onClick={() => changeTheme(theme.className)}
+            >
               {theme.name}
             </ThemeItem>
           ))}

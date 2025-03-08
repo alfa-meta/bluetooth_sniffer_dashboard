@@ -1,39 +1,40 @@
 .dashboard-wrapper {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    background-color: var(--bg-dark);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: var(--bg-dark);
 }
 
 .dashboard-container {
-    width: 80%;
-    max-width: 900px;
-    padding: 20px;
-    text-align: center;
-    background-color: var(--bg-darker); /* Darker than bg-dark */
-    color: var(--text-light);
-    border-radius: 10px;
-    box-shadow: 0px 4px 10px var(--box-shadow);
+  width: 80%;
+  max-width: 900px;
+  padding: 20px;
+  text-align: center;
+  background-color: var(--bg-darker); /* Darker than bg-dark */
+  color: var(--text-light);
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px var(--box-shadow);
 }
 
 .logout-button {
-    background-color: var(--button-bg);
-    color: var(--text-light);
-    padding: 10px 20px;
-    border: 1px solid var(--border-color);
-    cursor: pointer;
-    margin-top: 20px;
-    box-shadow: 2px 2px 5px var(--box-shadow);
-    transition: background-color 0.3s ease-in-out;
+  background-color: var(--button-bg);
+  color: var(--text-light);
+  padding: 10px 20px;
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  margin-top: 20px;
+  box-shadow: 2px 2px 5px var(--box-shadow);
+  transition: background-color 0.3s ease-in-out;
 }
 
 .logout-button:hover {
-    background-color: var(--button-hover);
+  background-color: var(--button-hover);
 }
 
-html, body {
-    height: 100%;
-    margin: 0;
-    overflow: hidden;
-  }
+html,
+body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}

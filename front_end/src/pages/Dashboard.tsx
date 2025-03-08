@@ -37,8 +37,6 @@ const ContentWrapper = styled.div`
   height: 100%;
 `;
 
-
-
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const [title, setTitle] = useState("Bluetooth Deanonimyser Dashboard");
@@ -59,12 +57,19 @@ const Dashboard: React.FC = () => {
       <MainContent style={{ marginLeft: isSidebarHidden ? "5px" : "5px" }}>
         <Titlebar title={title} />
         <ContentWrapper>
-          {title === "Devices" ? <Devices />: title === "Settings" ? <Settings /> : title === "Admin" ? <Admin /> : <p>Dashboard</p>}
+          {title === "Devices" ? (
+            <Devices />
+          ) : title === "Settings" ? (
+            <Settings />
+          ) : title === "Admin" ? (
+            <Admin />
+          ) : (
+            <p>Dashboard</p>
+          )}
         </ContentWrapper>
       </MainContent>
     </DashboardWrapper>
   );
 };
-
 
 export default Dashboard;

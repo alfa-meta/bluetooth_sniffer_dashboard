@@ -7,7 +7,9 @@ import Dashboard from "./pages/Dashboard"; // Import the Dashboard page
 
 const isAuthenticated = () => !!localStorage.getItem("token"); // Check if user is logged in
 
-const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
+const root = ReactDOM.createRoot(
+  document.getElementById("root") as HTMLElement
+);
 
 root.render(
   <React.StrictMode>
