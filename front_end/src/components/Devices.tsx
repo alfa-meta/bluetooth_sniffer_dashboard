@@ -133,7 +133,6 @@ const AddNewDevice: React.FC<{
   const [formData, setFormData] = useState({
     mac_address: "",
     device_name: "",
-    last_seen: "",
     email: "",
   });
   const [message, setMessage] = useState("");
@@ -147,8 +146,13 @@ const AddNewDevice: React.FC<{
     e.preventDefault();
     setMessage("Adding device...");
 
+    const deviceData = {
+      ...formData,
+      last_seen: Math.floor(Date.now() / 1000).toString(),
+    };
+
     try {
-      await axios.post("http://127.0.0.1:5000/add_device", formData, {
+      await axios.post("http://127.0.0.1:5000/add_device", deviceData, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",

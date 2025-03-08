@@ -5,7 +5,11 @@ import "./styles/AuthPage.css";
 
 const AuthPage: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
-  const [formData, setFormData] = useState({ email: "", password: "", name: "" });
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    name: "",
+  });
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
 
@@ -23,24 +27,30 @@ const AuthPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setMessage("Processing...");
-    
+
     const salt = "$2a$10$abcdefghijklmnopqrstuv";
     const hashedPassword = bcrypt.hashSync(formData.password, salt);
-    
-    const endpoint = isLogin ? "http://127.0.0.1:5000/login" : "http://127.0.0.1:5000/register";
+
+    const endpoint = isLogin
+      ? "http://127.0.0.1:5000/login"
+      : "http://127.0.0.1:5000/register";
     const payload = isLogin
       ? { email: formData.email, password: hashedPassword }
-      : { username: formData.name, email: formData.email, password: hashedPassword };
-    
+      : {
+          username: formData.name,
+          email: formData.email,
+          password: hashedPassword,
+        };
+
     try {
       const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-    
+
       const data = await response.json();
-    
+
       if (response.ok) {
         setMessage("Success! Redirecting...");
         localStorage.setItem("token", data.access_token);
@@ -57,7 +67,11 @@ const AuthPage: React.FC = () => {
   return (
     <div className="auth-container">
       <div className="auth-box">
-        <img src="/ble_deanonymiser_icon.png" alt="App Icon" className="auth-icon" />
+        <img
+          src="/ble_deanonymiser_icon.png"
+          alt="App Icon"
+          className="auth-icon"
+        />
         <h2 className="auth-title">{isLogin ? "Login" : "Register"}</h2>
         {message && <p className="auth-message">{message}</p>}
         <form onSubmit={handleSubmit} className="auth-form">
@@ -96,7 +110,10 @@ const AuthPage: React.FC = () => {
         </form>
         <p className="auth-toggle-text">
           {isLogin ? "Don't have an account?" : "Already have an account?"}
-          <button className="auth-toggle-button" onClick={() => setIsLogin(!isLogin)}>
+          <button
+            className="auth-toggle-button"
+            onClick={() => setIsLogin(!isLogin)}
+          >
             {isLogin ? "Register here" : "Login here"}
           </button>
         </p>
