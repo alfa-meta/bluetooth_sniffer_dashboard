@@ -54,14 +54,7 @@ const Td = styled.td`
 `;
 
 const Devices: React.FC = () => {
-  const [devices, setDevices] = useState<
-    {
-      mac_address: string;
-      device_name: string;
-      last_seen: string;
-      email: string;
-    }[]
-  >([]);
+  const [devices, setDevices] = useState([]);
   const [error, setError] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const navigate = useNavigate();
@@ -74,13 +67,14 @@ const Devices: React.FC = () => {
       navigate("/");
       return;
     }
+
     try {
       const response = await axios.get("http://127.0.0.1:5000/devices", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setDevices(response.data);
     } catch (err) {
-      setError("Failed to fetch device data");
+      console.error("Failed to fetch device data", err);
       localStorage.removeItem("token");
       navigate("/");
     }
@@ -146,42 +140,38 @@ const AddNewDevice: React.FC<{
     e.preventDefault();
     setMessage("Adding device...");
 
-    const deviceData = {
-      ...formData,
-      last_seen: Math.floor(Date.now() / 1000).toString(),
-    };
-
     try {
-      await axios.post("http://127.0.0.1:5000/add_device", deviceData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
+      await axios.post(
+        "http://127.0.0.1:5000/add_device",
+        { ...formData, last_seen: Math.floor(Date.now() / 1000).toString() },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
       setMessage("Device added successfully!");
-      fetchDevices(); // Refresh device list
+      fetchDevices();
       setTimeout(() => setIsAdding(false), 1000);
     } catch (error) {
+      console.error("Failed to add device", error);
       setMessage("Failed to add device. Please try again.");
     }
   };
 
   return (
-    <div className="device-container">
-      <h2 className="device-title">Add New Device</h2>
-      {message && <p className="device-message">{message}</p>}
-      <form className="device-form" onSubmit={handleSubmit}>
+    <div>
+      <h2>Add New Device</h2>
+      {message && <p>{message}</p>}
+      <form onSubmit={handleSubmit}>
         <input
           type="text"
           name="mac_address"
-          placeholder="MAC Address (e.g., AA:BB:CC:11:22:33)"
+          placeholder="MAC Address"
           value={formData.mac_address}
           onChange={handleChange}
           required
-          pattern="^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$"
-          title="Enter a valid MAC Address in format: AA:BB:CC:11:22:33"
-          className="device-input"
         />
         <input
           type="text"
@@ -190,7 +180,6 @@ const AddNewDevice: React.FC<{
           value={formData.device_name}
           onChange={handleChange}
           required
-          className="device-input"
         />
         <input
           type="email"
@@ -199,20 +188,11 @@ const AddNewDevice: React.FC<{
           value={formData.email}
           onChange={handleChange}
           required
-          className="device-input"
         />
-        <div className="device-button-container">
-          <button type="submit" className="device-button">
-            Submit
-          </button>
-          <button
-            type="button"
-            className="device-button cancel"
-            onClick={() => setIsAdding(false)}
-          >
-            Cancel
-          </button>
-        </div>
+        <button type="submit">Submit</button>
+        <button type="button" onClick={() => setIsAdding(false)}>
+          Cancel
+        </button>
       </form>
     </div>
   );
