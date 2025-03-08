@@ -1,3 +1,100 @@
+:root {
+  --bg-dark: #282828;
+  --bg-light: #3c3836;
+  --border-color: #504945;
+  --text-light: #ebdbb2;
+  --highlight: #fabd2f;
+  --button-bg: #458588;
+  --button-hover: #076678;
+  --box-shadow: rgba(0, 0, 0, 0.1);
+}
+
+.auth-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: var(--bg-dark);
+  color: var(--text-light);
+}
+
+.auth-box {
+  width: 400px;
+  padding: 30px;
+  box-shadow: 0px 4px 6px var(--box-shadow);
+  background-color: var(--bg-light);
+  border-radius: 15px;
+  border: 1px solid var(--border-color);
+}
+
+.auth-title {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 16px;
+  color: var(--highlight);
+  text-align: center;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  align-items: center;
+}
+
+.auth-input {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  background-color: var(--bg-dark);
+  color: var(--text-light);
+  outline: none;
+  box-sizing: border-box;
+}
+
+.auth-input:focus {
+  border-color: var(--highlight);
+  box-shadow: 0 0 5px var(--highlight);
+}
+
+.auth-button {
+  width: 100%;
+  background-color: var(--button-bg);
+  color: white;
+  padding: 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s;
+  box-sizing: border-box;
+}
+
+.auth-button:hover {
+  background-color: var(--button-hover);
+}
+
+.auth-toggle-text {
+  text-align: center;
+  margin-top: 10px;
+}
+
+.auth-toggle-button {
+  background: none;
+  border: none;
+  color: var(--highlight);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.auth-icon {
+  width: 80px;
+  height: auto;
+  display: block;
+  margin: 0 auto 15px;
+}
+
 .device-container {
   display: flex;
   flex-direction: column;
