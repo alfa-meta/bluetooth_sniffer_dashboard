@@ -3,6 +3,14 @@ import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import axios from "axios";
 
+// Define the type for devices
+interface Device {
+  mac_address: string;
+  device_name: string;
+  last_seen: string;
+  email: string;
+}
+
 const DevicesWrapper = styled.div`
   width: 100%;
   height: 100%;
@@ -54,7 +62,7 @@ const Td = styled.td`
 `;
 
 const Devices: React.FC = () => {
-  const [devices, setDevices] = useState([]);
+  const [devices, setDevices] = useState<Device[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const navigate = useNavigate();
@@ -69,9 +77,12 @@ const Devices: React.FC = () => {
     }
 
     try {
-      const response = await axios.get("http://127.0.0.1:5000/devices", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get<Device[]>(
+        "http://127.0.0.1:5000/devices",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setDevices(response.data);
     } catch (err) {
       console.error("Failed to fetch device data", err);

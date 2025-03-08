@@ -46,7 +46,9 @@ const Button = styled.button`
 `;
 
 const Admin: React.FC = () => {
-  const [users, setUsers] = useState<{ uid: number; username: string; password: string; email: string; }[]>([]);
+  const [users, setUsers] = useState<
+    { uid: number; username: string; password: string; email: string }[]
+  >([]);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
@@ -74,7 +76,12 @@ const Admin: React.FC = () => {
     fetchUsers();
   }, [fetchUsers]);
 
-  const handleDelete = async (uid: number) => {
+  const handleDelete = async (uid: number, username: string) => {
+    const confirmDelete = await window.confirm(
+      `Are you sure you want to delete ${username}?`
+    );
+    if (!confirmDelete) return;
+
     const token = localStorage.getItem("token");
     if (!token) {
       setError("No token found, please login");
@@ -104,7 +111,6 @@ const Admin: React.FC = () => {
               <Th>UID</Th>
               <Th>Username</Th>
               <Th>Email</Th>
-              <Th>Password</Th>
               <Th>Actions</Th>
             </tr>
           </thead>
@@ -114,9 +120,10 @@ const Admin: React.FC = () => {
                 <Td>{user.uid}</Td>
                 <Td>{user.username}</Td>
                 <Td>{user.email}</Td>
-                <Td>{user.password}</Td>
                 <Td>
-                  <Button onClick={() => handleDelete(user.uid)}>Delete</Button>
+                  <Button onClick={() => handleDelete(user.uid, user.username)}>
+                    Delete
+                  </Button>
                 </Td>
               </tr>
             ))}

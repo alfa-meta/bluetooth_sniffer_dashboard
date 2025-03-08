@@ -7,37 +7,110 @@
     <meta name="theme-color" content="#000000" />
     <meta
       name="description"
-      content="Web site created using create-react-app"
+      content="Bluetooth Deanonimyser dashboard allowing you to manage your Bluetooth Alerts."
     />
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    <!--
-      manifest.json provides metadata used when your web app is installed on a
-      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
-    -->
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <!--
-      Notice the use of %PUBLIC_URL% in the tags above.
-      It will be replaced with the URL of the `public` folder during the build.
-      Only files inside the `public` folder can be referenced from the HTML.
-
-      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
-      work correctly both with client-side routing and a non-root public URL.
-      Learn how to configure a non-root public URL by running `npm run build`.
-    -->
+    <link rel="stylesheet" href="../src/styles/globals.css" />
     <title>Bluetooth Deanonimyser</title>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
-    <!--
-      This HTML file is a template.
-      If you open it directly in the browser, you will see an empty page.
-
-      You can add webfonts, meta tags, or analytics to this file.
-      The build step will place the bundled scripts into the <body> tag.
-
-      To begin the development, run `npm start` or `yarn start`.
-      To create a production bundle, use `npm run build` or `yarn build`.
-    -->
   </body>
+  <script>
+    /**
+     * Thank you mmiscool for helping out with the window. Code adapted from:
+     * Repository: https://github.com/mmiscool/aiCoder/blob/master/public/confirmDialog.js
+     **/
+    const dialogStyle = {
+      position: "fixed",
+      top: "50%",
+      left: "50%",
+      transform: "translate(-50%, -50%)",
+      backgroundColor: "var(--bg-light)",
+      color: "var(--text-light)",
+      padding: "20px",
+      boxShadow: "0 4px 8px var(--box-shadow)",
+      borderRadius: "8px",
+      zIndex: "10000",
+      fontSize: "18px",
+      textAlign: "left",
+    };
+
+    const buttonStyle = {
+      padding: "10px 20px",
+      margin: "10px",
+      border: "none",
+      borderRadius: "5px",
+      cursor: "pointer",
+    };
+
+    const confirmButtonStyle = {
+      ...buttonStyle,
+      backgroundColor: "var(--button-bg)",
+      color: "var(--text-light)",
+    };
+
+    const cancelButtonStyle = {
+      ...buttonStyle,
+      backgroundColor: "var(--red)",
+      color: "var(--text-light)",
+    };
+
+    const buttonContainerStyle = {
+      display: "flex",
+      justifyContent: "center",
+      gap: "10px",
+      marginTop: "10px",
+    };
+
+    window.confirm = async (
+      message,
+      timeoutInSeconds = -1,
+      defaultValue = false
+    ) => {
+      return new Promise((resolve) => {
+        const dialog = document.createElement("div");
+        const messageDiv = document.createElement("div");
+        const buttonContainer = document.createElement("div");
+        const confirmButton = document.createElement("button");
+        const cancelButton = document.createElement("button");
+
+        Object.assign(dialog.style, dialogStyle);
+        Object.assign(buttonContainer.style, buttonContainerStyle);
+
+        messageDiv.textContent = message;
+        confirmButton.textContent = "Yes";
+        cancelButton.textContent = "No";
+        Object.assign(confirmButton.style, confirmButtonStyle);
+        Object.assign(cancelButton.style, cancelButtonStyle);
+
+        buttonContainer.appendChild(confirmButton);
+        buttonContainer.appendChild(cancelButton);
+        dialog.appendChild(messageDiv);
+        dialog.appendChild(buttonContainer);
+        document.body.appendChild(dialog);
+
+        const cleanup = () => {
+          confirmButton.removeEventListener("click", onConfirm);
+          cancelButton.removeEventListener("click", onCancel);
+          dialog.remove();
+        };
+
+        const onConfirm = () => {
+          cleanup();
+          resolve(true);
+        };
+
+        const onCancel = () => {
+          cleanup();
+          resolve(false);
+        };
+
+        confirmButton.addEventListener("click", onConfirm);
+        cancelButton.addEventListener("click", onCancel);
+      });
+    };
+  </script>
 </html>
