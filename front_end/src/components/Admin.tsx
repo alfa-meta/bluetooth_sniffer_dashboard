@@ -96,6 +96,8 @@ const Admin: React.FC = () => {
       setUsers(users.filter((user) => user.uid !== uid)); // Remove user from state
     } catch (err) {
       setError("Failed to delete user");
+      localStorage.removeItem("token");
+      navigate("/");
     }
   };
 

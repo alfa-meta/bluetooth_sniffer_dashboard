@@ -142,6 +142,7 @@ const AddNewDevice: React.FC<{
   });
   const [message, setMessage] = useState("");
   const token = localStorage.getItem("token");
+  const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -167,6 +168,8 @@ const AddNewDevice: React.FC<{
       setTimeout(() => setIsAdding(false), 1000);
     } catch (error) {
       console.error("Failed to add device", error);
+      localStorage.removeItem("token");
+      navigate("/");
       setMessage("Failed to add device. Please try again.");
     }
   };

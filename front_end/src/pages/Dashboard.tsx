@@ -45,6 +45,7 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
+      localStorage.removeItem("token");
       navigate("/");
     }
   }, [navigate]);
