@@ -175,16 +175,17 @@ const AddNewDevice: React.FC<{
   };
 
   return (
-    <div>
-      <h2>Add New Device</h2>
-      {message && <p>{message}</p>}
-      <form onSubmit={handleSubmit}>
+    <div className="device-container">
+      <h2 className="device-title">Add New Device</h2>
+      {message && <p className="device-message">{message}</p>}
+      <form className="device-form" onSubmit={handleSubmit}>
         <input
           type="text"
           name="mac_address"
           placeholder="MAC Address"
           value={formData.mac_address}
           onChange={handleChange}
+          className="device-input"
           required
         />
         <input
@@ -193,6 +194,7 @@ const AddNewDevice: React.FC<{
           placeholder="Device Name"
           value={formData.device_name}
           onChange={handleChange}
+          className="device-input"
           required
         />
         <input
@@ -201,12 +203,21 @@ const AddNewDevice: React.FC<{
           placeholder="Email"
           value={formData.email}
           onChange={handleChange}
+          className="device-input"
           required
         />
-        <button type="submit">Submit</button>
-        <button type="button" onClick={() => setIsAdding(false)}>
-          Cancel
-        </button>
+        <div className="device-button-container">
+          <button type="submit" className="device-button">
+            Submit
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsAdding(false)}
+            className="device-button cancel"
+          >
+            Cancel
+          </button>
+        </div>
       </form>
     </div>
   );
