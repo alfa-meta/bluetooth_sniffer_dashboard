@@ -1,0 +1,13 @@
+Things left to do:
+Devices: 1. Allow to filter alphabetically (sized based) 2. Allow to search
+
+    Settings:
+        Allow to change database path.
+        Get the Theme from User table.
+
+
+    Admin:
+        Show Logs
+
+    Bugs:
+        When pressing delete do not allow any other action.

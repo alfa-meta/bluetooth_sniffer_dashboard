@@ -13,9 +13,23 @@
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
     <link rel="stylesheet" href="../src/styles/globals.css" />
     <title>Bluetooth Deanonimyser</title>
+    <style>
+      /* Overlay to darken the background when the dialog is open */
+      .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 9999;
+        display: none;
+      }
+    </style>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="overlay" class="overlay"></div>
     <div id="root"></div>
   </body>
   <script>
@@ -65,12 +79,15 @@
       marginTop: "10px",
     };
 
-    window.confirm = async (
-      message,
-      timeoutInSeconds = -1,
-      defaultValue = false
-    ) => {
+    /**
+     * Custom confirm dialog that darkens the background and disables interaction with the page.
+     * Returns a promise that resolves to true if confirmed, false otherwise.
+     */
+    window.confirm = async (message) => {
       return new Promise((resolve) => {
+        const overlay = document.getElementById("overlay");
+        overlay.style.display = "block";
+
         const dialog = document.createElement("div");
         const messageDiv = document.createElement("div");
         const buttonContainer = document.createElement("div");
@@ -96,6 +113,7 @@
           confirmButton.removeEventListener("click", onConfirm);
           cancelButton.removeEventListener("click", onCancel);
           dialog.remove();
+          overlay.style.display = "none";
         };
 
         const onConfirm = () => {
