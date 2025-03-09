@@ -19,7 +19,7 @@ const Table = styled.table`
   margin-top: 20px;
   background: var(--bg-light);
   color: var(--text-dark);
-  border: 2px solid var(--border-color); /* Add table border */
+  border: 2px solid var(--border-color);
 `;
 
 const Th = styled.th`
