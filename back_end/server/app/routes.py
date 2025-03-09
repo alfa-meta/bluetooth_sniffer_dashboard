@@ -3,6 +3,7 @@ from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identi
 from flask_bcrypt import Bcrypt
 from config import Config
 from .models import Device, User, db
+import subprocess
 
 main_bp = Blueprint('main', __name__)
 bcrypt = Bcrypt()
@@ -67,80 +68,12 @@ def protected():
         print("Error:", e)
         return jsonify({"message": "An error occurred, please try again later"}), 500
 
-@main_bp.route("/users", methods=["GET"])
+@main_bp.route("/start_scanning", methods=["POST"])
 @jwt_required()
-def get_all_users():
+def start_scanning():
     try:
-        users = User.query.all()
-        user_list = [
-            {"uid": user.uid, "username": user.username, "email": user.email}
-            for user in users
-        ]
-        return jsonify(user_list), 200
-    except Exception as e:
-        print("Error:", e)
-        return jsonify({"message": "An error occurred, please try again later"}), 500
-
-@main_bp.route("/delete_user/<int:user_id>", methods=["DELETE"])
-@jwt_required()
-def delete_user(user_id):
-    try:
-        user = User.query.get(user_id)
-        if not user:
-            return jsonify({"message": "User not found"}), 404
-
-        db.session.delete(user)
-        db.session.commit()
-        return jsonify({"message": "User deleted successfully"}), 200
-    except Exception as e:
-        print("Error:", e)
-        return jsonify({"message": "An error occurred, please try again later"}), 500
-
-@main_bp.route('/devices', methods=['GET'])
-@jwt_required()
-def get_all_devices():
-    try:
-        devices = Device.query.all()
-        device_list = [
-            {
-                'mac_address': device.mac_address,
-                'device_name': device.device_name,
-                'last_seen': device.last_seen,
-                'email': device.email
-            }
-            for device in devices
-        ]
-        return jsonify(device_list), 200
-    except Exception as e:
-        print("Error:", e)
-        return jsonify({"message": "An error occurred, please try again later"}), 500
-
-@main_bp.route("/add_device", methods=["POST"])
-@jwt_required()
-def add_device():
-    try:
-        data = request.get_json()
-        if not data:
-            return jsonify({"message": "No data provided"}), 400
-
-        mac_address = data.get("mac_address")
-        device_name = data.get("device_name")
-        last_seen = data.get("last_seen")
-        email = data.get("email")
-
-        if not all([mac_address, device_name, last_seen, email]):
-            return jsonify({"message": "Missing required fields"}), 400
-
-        new_device = Device(
-            mac_address=mac_address,
-            device_name=device_name,
-            last_seen=last_seen,
-            email=email
-        )
-        db.session.add(new_device)
-        db.session.commit()
-
-        return jsonify({"message": "Device added successfully"}), 201
+        process = subprocess.Popen(["python", "../../sniffer/main.py"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        return jsonify({"message": "Scanning started", "pid": process.pid}), 200
     except Exception as e:
         print("Error:", e)
         return jsonify({"message": "An error occurred, please try again later"}), 500

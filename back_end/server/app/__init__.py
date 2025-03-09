@@ -6,7 +6,7 @@ from .models import db
 
 def create_app():
     app = Flask(__name__)
-    CORS(app, supports_credentials=True)
+    CORS(app, supports_credentials=True, origins=["http://localhost:3000", "http://localhost:5000"])
     app.config.from_object('config.Config')
 
     db.init_app(app)
