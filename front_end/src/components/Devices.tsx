@@ -54,19 +54,26 @@ const Table = styled.table`
 const Th = styled.th`
   padding: 10px;
   border-bottom: 2px solid var(--border-color);
+  border-right: 2px solid var(--border-color);
   text-align: left;
   background: var(--table-header);
+  cursor: pointer;
 `;
 
 const Td = styled.td`
   padding: 10px;
   border-bottom: 1px solid var(--border-color);
+  border-right: 2px solid var(--border-color);
 `;
 
 const Devices: React.FC = () => {
   const [devices, setDevices] = useState<Device[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
+  const [sortConfig, setSortConfig] = useState<{
+    key: keyof Device;
+    direction: "asc" | "desc";
+  } | null>(null);
   const navigate = useNavigate();
 
   const fetchDevices = useCallback(async () => {
@@ -97,6 +104,28 @@ const Devices: React.FC = () => {
     fetchDevices();
   }, [fetchDevices]);
 
+  const sortDevices = (key: keyof Device) => {
+    let direction: "asc" | "desc" = "asc";
+    if (sortConfig?.key === key && sortConfig.direction === "asc") {
+      direction = "desc";
+    }
+    setSortConfig({ key, direction });
+
+    const sortedDevices = [...devices].sort((a, b) => {
+      if (a[key] < b[key]) return direction === "asc" ? -1 : 1;
+      if (a[key] > b[key]) return direction === "asc" ? 1 : -1;
+      return 0;
+    });
+    setDevices(sortedDevices);
+  };
+
+  const getSortIndicator = (key: keyof Device) => {
+    if (sortConfig?.key === key) {
+      return sortConfig.direction === "asc" ? " ▲" : " ▼";
+    }
+    return "";
+  };
+
   return isAdding ? (
     <AddNewDevice setIsAdding={setIsAdding} fetchDevices={fetchDevices} />
   ) : (
@@ -111,10 +140,18 @@ const Devices: React.FC = () => {
         <Table>
           <thead>
             <tr>
-              <Th>MAC Address</Th>
-              <Th>Device Name</Th>
-              <Th>Last Seen</Th>
-              <Th>User Email</Th>
+              <Th onClick={() => sortDevices("mac_address")}>
+                MAC Address{getSortIndicator("mac_address")}
+              </Th>
+              <Th onClick={() => sortDevices("device_name")}>
+                Device Name{getSortIndicator("device_name")}
+              </Th>
+              <Th onClick={() => sortDevices("last_seen")}>
+                Last Seen{getSortIndicator("last_seen")}
+              </Th>
+              <Th onClick={() => sortDevices("email")}>
+                User Email{getSortIndicator("email")}
+              </Th>
             </tr>
           </thead>
           <tbody>

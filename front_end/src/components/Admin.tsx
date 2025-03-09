@@ -25,13 +25,16 @@ const Table = styled.table`
 const Th = styled.th`
   padding: 10px;
   border-bottom: 2px solid var(--border-color);
+  border-right: 2px solid var(--border-color);
   text-align: left;
   background: var(--table-header);
+  cursor: pointer;
 `;
 
 const Td = styled.td`
   padding: 10px;
   border-bottom: 1px solid var(--border-color);
+  border-right: 2px solid var(--border-color);
 `;
 
 const Button = styled.button`
@@ -48,9 +51,13 @@ const Button = styled.button`
 
 const Admin: React.FC = () => {
   const [users, setUsers] = useState<
-    { uid: number; username: string; password: string; email: string }[]
+    { uid: number; username: string; email: string }[]
   >([]);
   const [error, setError] = useState<string | null>(null);
+  const [sortConfig, setSortConfig] = useState<{
+    key: keyof (typeof users)[0];
+    direction: "asc" | "desc";
+  } | null>(null);
   const navigate = useNavigate();
 
   const fetchUsers = useCallback(async () => {
@@ -78,10 +85,7 @@ const Admin: React.FC = () => {
   }, [fetchUsers]);
 
   const handleDelete = async (uid: number, username: string) => {
-    const confirmDelete = await window.confirm(
-      `Are you sure you want to delete ${username}?`
-    );
-    if (!confirmDelete) return;
+    if (!window.confirm(`Are you sure you want to delete ${username}?`)) return;
 
     const token = localStorage.getItem("token");
     if (!token) {
@@ -94,12 +98,34 @@ const Admin: React.FC = () => {
       await axios.delete(`http://127.0.0.1:5000/delete_user/${uid}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setUsers(users.filter((user) => user.uid !== uid)); // Remove user from state
+      setUsers(users.filter((user) => user.uid !== uid));
     } catch (err) {
       setError("Failed to delete user");
       localStorage.removeItem("token");
       navigate("/");
     }
+  };
+
+  const sortUsers = (key: keyof (typeof users)[0]) => {
+    let direction: "asc" | "desc" = "asc";
+    if (sortConfig?.key === key && sortConfig.direction === "asc") {
+      direction = "desc";
+    }
+    setSortConfig({ key, direction });
+
+    const sortedUsers = [...users].sort((a, b) => {
+      if (a[key] < b[key]) return direction === "asc" ? -1 : 1;
+      if (a[key] > b[key]) return direction === "asc" ? 1 : -1;
+      return 0;
+    });
+    setUsers(sortedUsers);
+  };
+
+  const getSortIndicator = (key: keyof (typeof users)[0]) => {
+    if (sortConfig?.key === key) {
+      return sortConfig.direction === "asc" ? " ▲" : " ▼";
+    }
+    return "";
   };
 
   return (
@@ -111,9 +137,15 @@ const Admin: React.FC = () => {
         <Table>
           <thead>
             <tr>
-              <Th>UID</Th>
-              <Th>Username</Th>
-              <Th>Email</Th>
+              <Th onClick={() => sortUsers("uid")}>
+                UID{getSortIndicator("uid")}
+              </Th>
+              <Th onClick={() => sortUsers("username")}>
+                Username{getSortIndicator("username")}
+              </Th>
+              <Th onClick={() => sortUsers("email")}>
+                Email{getSortIndicator("email")}
+              </Th>
               <Th>Actions</Th>
             </tr>
           </thead>
