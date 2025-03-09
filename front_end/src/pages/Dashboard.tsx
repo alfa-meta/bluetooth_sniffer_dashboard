@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "../styles/Dashboard.css";
 import Sidebar from "../components/Sidebar";
 import Titlebar from "../components/Titlebar";
+import Scanner from "../components/Scanner";
 import Admin from "../components/Admin"; // Corrected import
 import Devices from "../components/Devices";
 import Settings from "../components/Settings";
@@ -58,7 +59,9 @@ const Dashboard: React.FC = () => {
       <MainContent style={{ marginLeft: isSidebarHidden ? "5px" : "5px" }}>
         <Titlebar title={title} />
         <ContentWrapper>
-          {title === "Devices" ? (
+          {title === "Scanner" ? (
+            <Scanner />
+          ) : title === "Devices" ? (
             <Devices />
           ) : title === "Settings" ? (
             <Settings />

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import styled from "styled-components";
-import "./styles/globals.css"; // Ensure correct relative path
+import "../styles/globals.css"; // Ensure correct relative path
 
 const ScannerWrapper = styled.div`
   width: 100%;

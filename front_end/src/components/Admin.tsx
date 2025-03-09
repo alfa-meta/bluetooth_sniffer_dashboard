@@ -97,8 +97,13 @@ const Admin: React.FC = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUsers(response.data);
-    } catch (err) {
-      setError("Failed to fetch user data");
+    } catch (err: any) {
+      // Check error response
+      if (err.response?.status === 401) {
+        alert("Session expired. Please log in again.");
+      } else {
+        setError("Failed to fetch user data");
+      }
       localStorage.removeItem("token");
       navigate("/");
     }
@@ -123,8 +128,12 @@ const Admin: React.FC = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUsers(users.filter((user) => user.uid !== uid));
-    } catch (err) {
-      setError("Failed to delete user");
+    } catch (err: any) {
+      if (err.response?.status === 401) {
+        alert("Session expired. Please log in again.");
+      } else {
+        setError("Failed to delete user");
+      }
       localStorage.removeItem("token");
       navigate("/");
     }

@@ -77,3 +77,51 @@ def start_scanning():
     except Exception as e:
         print("Error:", e)
         return jsonify({"message": "An error occurred, please try again later"}), 500
+
+@main_bp.route("/users", methods=["GET"])
+@jwt_required()
+def get_all_users():
+    try:
+        users = User.query.all()
+        user_list = [
+            {"uid": user.uid, "username": user.username, "email": user.email}
+            for user in users
+        ]
+        return jsonify(user_list), 200
+    except Exception as e:
+        print("Error:", e)
+        return jsonify({"message": "An error occurred, please try again later"}), 500
+
+@main_bp.route("/delete_user/<int:user_id>", methods=["DELETE"])
+@jwt_required()
+def delete_user(user_id):
+    try:
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({"message": "User not found"}), 404
+
+        db.session.delete(user)
+        db.session.commit()
+        return jsonify({"message": "User deleted successfully"}), 200
+    except Exception as e:
+        print("Error:", e)
+        return jsonify({"message": "An error occurred, please try again later"}), 500
+    
+@main_bp.route('/devices', methods=['GET'])
+@jwt_required()
+def get_all_devices():
+    try:
+        devices = Device.query.all()
+        device_list = [
+            {
+                'mac_address': device.mac_address,
+                'device_name': device.device_name,
+                'last_seen': device.last_seen,
+                'email': device.email
+            }
+            for device in devices
+        ]
+        return jsonify(device_list), 200
+    except Exception as e:
+        print("Error:", e)
+        return jsonify({"message": "An error occurred, please try again later"}), 500
