@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
+import { FaSearch } from "react-icons/fa";
 import axios from "axios";
 
 const AdminWrapper = styled.div`
@@ -11,6 +12,32 @@ const AdminWrapper = styled.div`
   flex-direction: column;
   align-items: center;
   overflow: auto;
+`;
+
+const SearchContainer = styled.div`
+  display: flex;
+  align-items: center;
+  width: 50%;
+  margin-bottom: 20px;
+  border: 2px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--bg-light);
+  padding: 5px 10px;
+`;
+
+const SearchIcon = styled(FaSearch)`
+  color: var(--text-dark);
+  margin-right: 10px;
+`;
+
+const SearchInput = styled.input`
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background: transparent;
+  color: var(--text-dark);
+  font-size: 16px;
+  outline: none;
 `;
 
 const Table = styled.table`
@@ -53,11 +80,8 @@ const Admin: React.FC = () => {
   const [users, setUsers] = useState<
     { uid: number; username: string; email: string }[]
   >([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [sortConfig, setSortConfig] = useState<{
-    key: keyof (typeof users)[0];
-    direction: "asc" | "desc";
-  } | null>(null);
   const navigate = useNavigate();
 
   const fetchUsers = useCallback(async () => {
@@ -106,51 +130,38 @@ const Admin: React.FC = () => {
     }
   };
 
-  const sortUsers = (key: keyof (typeof users)[0]) => {
-    let direction: "asc" | "desc" = "asc";
-    if (sortConfig?.key === key && sortConfig.direction === "asc") {
-      direction = "desc";
-    }
-    setSortConfig({ key, direction });
-
-    const sortedUsers = [...users].sort((a, b) => {
-      if (a[key] < b[key]) return direction === "asc" ? -1 : 1;
-      if (a[key] > b[key]) return direction === "asc" ? 1 : -1;
-      return 0;
-    });
-    setUsers(sortedUsers);
-  };
-
-  const getSortIndicator = (key: keyof (typeof users)[0]) => {
-    if (sortConfig?.key === key) {
-      return sortConfig.direction === "asc" ? " ▲" : " ▼";
-    }
-    return "";
-  };
+  const filteredUsers = users.filter(
+    (user) =>
+      user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <AdminWrapper>
       <h2>User List</h2>
+      <SearchContainer>
+        <SearchIcon />
+        <SearchInput
+          type="text"
+          placeholder="Search"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </SearchContainer>
       {error ? (
         <p>{error}</p>
       ) : (
         <Table>
           <thead>
             <tr>
-              <Th onClick={() => sortUsers("uid")}>
-                UID{getSortIndicator("uid")}
-              </Th>
-              <Th onClick={() => sortUsers("username")}>
-                Username{getSortIndicator("username")}
-              </Th>
-              <Th onClick={() => sortUsers("email")}>
-                Email{getSortIndicator("email")}
-              </Th>
+              <Th>UID</Th>
+              <Th>Username</Th>
+              <Th>Email</Th>
               <Th>Actions</Th>
             </tr>
           </thead>
           <tbody>
-            {users.map((user) => (
+            {filteredUsers.map((user) => (
               <tr key={user.uid}>
                 <Td>{user.uid}</Td>
                 <Td>{user.username}</Td>

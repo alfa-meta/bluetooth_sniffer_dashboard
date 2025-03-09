@@ -2,9 +2,9 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import axios from "axios";
+import { FaSearch } from "react-icons/fa";
 import AddNewDevice from "./AddNewDevice";
 
-// Define the type for devices
 interface Device {
   mac_address: string;
   device_name: string;
@@ -20,6 +20,32 @@ const DevicesWrapper = styled.div`
   flex-direction: column;
   align-items: center;
   overflow: auto;
+`;
+
+const SearchContainer = styled.div`
+  display: flex;
+  align-items: center;
+  width: 50%;
+  margin-bottom: 20px;
+  border: 2px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--bg-light);
+  padding: 5px 10px;
+`;
+
+const SearchIcon = styled(FaSearch)`
+  color: var(--text-dark);
+  margin-right: 10px;
+`;
+
+const SearchInput = styled.input`
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background: transparent;
+  color: var(--text-dark);
+  font-size: 16px;
+  outline: none;
 `;
 
 const ButtonContainer = styled.div`
@@ -68,12 +94,9 @@ const Td = styled.td`
 
 const Devices: React.FC = () => {
   const [devices, setDevices] = useState<Device[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
-  const [sortConfig, setSortConfig] = useState<{
-    key: keyof Device;
-    direction: "asc" | "desc";
-  } | null>(null);
   const navigate = useNavigate();
 
   const fetchDevices = useCallback(async () => {
@@ -104,33 +127,27 @@ const Devices: React.FC = () => {
     fetchDevices();
   }, [fetchDevices]);
 
-  const sortDevices = (key: keyof Device) => {
-    let direction: "asc" | "desc" = "asc";
-    if (sortConfig?.key === key && sortConfig.direction === "asc") {
-      direction = "desc";
-    }
-    setSortConfig({ key, direction });
-
-    const sortedDevices = [...devices].sort((a, b) => {
-      if (a[key] < b[key]) return direction === "asc" ? -1 : 1;
-      if (a[key] > b[key]) return direction === "asc" ? 1 : -1;
-      return 0;
-    });
-    setDevices(sortedDevices);
-  };
-
-  const getSortIndicator = (key: keyof Device) => {
-    if (sortConfig?.key === key) {
-      return sortConfig.direction === "asc" ? " ▲" : " ▼";
-    }
-    return "";
-  };
+  const filteredDevices = devices.filter(
+    (device) =>
+      device.device_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      device.mac_address.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      device.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return isAdding ? (
     <AddNewDevice setIsAdding={setIsAdding} fetchDevices={fetchDevices} />
   ) : (
     <DevicesWrapper>
       <h2>Device List</h2>
+      <SearchContainer>
+        <SearchIcon />
+        <SearchInput
+          type="text"
+          placeholder="Search"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </SearchContainer>
       <ButtonContainer>
         <Button onClick={() => setIsAdding(true)}>Add New Device</Button>
       </ButtonContainer>
@@ -140,22 +157,14 @@ const Devices: React.FC = () => {
         <Table>
           <thead>
             <tr>
-              <Th onClick={() => sortDevices("mac_address")}>
-                MAC Address{getSortIndicator("mac_address")}
-              </Th>
-              <Th onClick={() => sortDevices("device_name")}>
-                Device Name{getSortIndicator("device_name")}
-              </Th>
-              <Th onClick={() => sortDevices("last_seen")}>
-                Last Seen{getSortIndicator("last_seen")}
-              </Th>
-              <Th onClick={() => sortDevices("email")}>
-                User Email{getSortIndicator("email")}
-              </Th>
+              <Th>MAC Address</Th>
+              <Th>Device Name</Th>
+              <Th>Last Seen</Th>
+              <Th>User Email</Th>
             </tr>
           </thead>
           <tbody>
-            {devices.map((device) => (
+            {filteredDevices.map((device) => (
               <tr key={device.mac_address}>
                 <Td>{device.mac_address}</Td>
                 <Td>{device.device_name}</Td>
