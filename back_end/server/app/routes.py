@@ -72,11 +72,14 @@ def protected():
 @jwt_required()
 def start_scanning():
     try:
-        process = subprocess.Popen(["python", "../../sniffer/main.py"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process = subprocess.Popen(["python", "../../sniffer/main.py"],
+                                   stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE)
         return jsonify({"message": "Scanning started", "pid": process.pid}), 200
     except Exception as e:
         print("Error:", e)
         return jsonify({"message": "An error occurred, please try again later"}), 500
+
 
 @main_bp.route("/users", methods=["GET"])
 @jwt_required()
@@ -122,6 +125,38 @@ def get_all_devices():
             for device in devices
         ]
         return jsonify(device_list), 200
+    except Exception as e:
+        print("Error:", e)
+        return jsonify({"message": "An error occurred, please try again later"}), 500
+
+
+@main_bp.route("/add_device", methods=["POST"])
+@jwt_required()
+def add_device():
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"message": "No data provided"}), 400
+
+        mac_address = data.get("mac_address")
+        device_name = data.get("device_name")
+        last_seen = data.get("last_seen")
+        email = data.get("email")
+ 
+        if not all([mac_address, device_name, last_seen, email]):
+            return jsonify({"message": "Missing required fields"}), 400
+ 
+        new_device = Device(
+            mac_address=mac_address,
+            device_name=device_name,
+            last_seen=last_seen,
+            email=email
+        )
+ 
+        db.session.add(new_device)
+        db.session.commit()
+
+        return jsonify({"message": "Device added successfully"}), 201
     except Exception as e:
         print("Error:", e)
         return jsonify({"message": "An error occurred, please try again later"}), 500
