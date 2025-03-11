@@ -66,15 +66,15 @@ body.complementary-light {
   --button-hover: #d6782e;
 }
 
-/* Triadic Theme (Red, Yellow, Blue) - Light Mode */
-body.triadic-light {
-  --bg-dark: #d86a4b;
-  --bg-light: #fae8d1;
-  --border-color: #e3c27e;
-  --text-light: #69433a;
-  --highlight: #755044;
-  --button-bg: #7392c3;
-  --button-hover: #dfba88;
+/* GitHub Theme - Softer Light Mode with Darker Grey */
+body.github-light {
+  --bg-dark: #dadfe5; /* Darker than #eaeef2 */
+  --bg-light: #e6eaee; /* Muted white */
+  --border-color: #a7b0ba; /* Darker grey for borders */
+  --text-light: #1b1f24; /* Slightly deeper black */
+  --highlight: #074a91; /* Less bright blue */
+  --button-bg: #238636; /* Muted green */
+  --button-hover: #1b6b2a; /* Darker hover effect */
 }
 
 body {

@@ -46,16 +46,19 @@ def login():
         if not data or "email" not in data or "password" not in data:
             return jsonify({"message": "Email and password are required"}), 400
 
-        print(user.password, data["password"], PASSWORD_SALT)
         user = User.query.filter_by(email=data["email"]).first()
-        if user and bcrypt.check_password_hash(user.password, data["password"] + PASSWORD_SALT):
-            access_token = create_access_token(identity=user.email)
-            return jsonify(access_token=access_token), 200
+
+        if user:
+            print(user.password, data["password"], PASSWORD_SALT)  # Only if user exists
+            if bcrypt.check_password_hash(user.password, data["password"] + PASSWORD_SALT):
+                access_token = create_access_token(identity=user.email)
+                return jsonify(access_token=access_token), 200
 
         return jsonify({"message": "Invalid credentials"}), 401
     except Exception as e:
         print("Error:", e)
         return jsonify({"message": "An error occurred, please try again later"}), 500
+
 
 @main_bp.route("/protected", methods=["GET"])
 @jwt_required()

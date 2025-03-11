@@ -80,7 +80,7 @@ const themes = [
   { name: "Monochrome", className: "monochrome" },
   { name: "Analogous", className: "analogous" },
   { name: "Complementary", className: "complementary-light" },
-  { name: "Triadic", className: "triadic-light" },
+  { name: "Github Light", className: "github-light" },
 ];
 
 const Settings: React.FC = () => {
