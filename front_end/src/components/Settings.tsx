@@ -129,6 +129,7 @@ const Settings: React.FC = () => {
 
   return (
     <SettingsWrapper>
+      <h2>Settings</h2>
       <SettingsGrid>
         <Label>E-mail</Label>
         <Content>{email || "Loading..."}</Content>

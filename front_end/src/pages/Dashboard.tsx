@@ -57,7 +57,7 @@ const Dashboard: React.FC = () => {
         <Sidebar setTitle={setTitle} setSidebarHidden={setIsSidebarHidden} />
       </SidebarWrapper>
       <MainContent style={{ marginLeft: isSidebarHidden ? "5px" : "5px" }}>
-        <Titlebar title={title} />
+        {/* <Titlebar title={title} /> */}
         <ContentWrapper>
           {title === "Scanner" ? (
             <Scanner />

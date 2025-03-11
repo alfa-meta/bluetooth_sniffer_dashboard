@@ -9,8 +9,10 @@ const ScannerWrapper = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   background: var(--background);
+  padding-top: 20px;
+  padding-left: 20px;
 `;
 
 const ScanButton = styled.button`
@@ -100,6 +102,7 @@ const Scanner: React.FC = () => {
 
   return (
     <ScannerWrapper>
+      <h2>Scanner</h2>
       <ScanButton onClick={toggleScanning}>
         {scanning ? "Stop Scanning" : "Start Scanning"}
       </ScanButton>
