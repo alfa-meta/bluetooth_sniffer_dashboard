@@ -2,7 +2,7 @@ from flask import Flask
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
-from flask_socketio import SocketIO
+from flask_socketio import SocketIO, disconnect
 from .models import db
 
 bcrypt = Bcrypt()
@@ -19,14 +19,15 @@ def create_app():
     jwt.init_app(app)
 
     with app.app_context():
-        from .models import User  # Ensure all models are imported
+        from .models import User, Device  # Ensure all models are imported
         db.create_all()
 
-    from .routes import main_bp, start_scan, handle_disconnect
+    from .routes import main_bp, websocket_handle_connect, websocket_start_scan, websocket_handle_disconnect
     app.register_blueprint(main_bp)
 
     socketio.init_app(app)
-    socketio.on_event("start_scan", start_scan)
-    socketio.on_event("handle_disconnect", handle_disconnect)
+    socketio.on_event("connect", websocket_handle_connect)
+    socketio.on_event("start_scan", websocket_start_scan)
+    socketio.on_event("handle_disconnect", websocket_handle_disconnect)
 
     return app, socketio

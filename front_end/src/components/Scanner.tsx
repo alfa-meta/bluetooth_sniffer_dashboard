@@ -31,6 +31,33 @@ const ScanButton = styled.button`
   }
 `;
 
+const ConnectButton = styled.button`
+  margin-top: 10px;
+  padding: 10px 20px;
+  font-size: 16px;
+  background: var(--button-bg);
+  color: var(--text-light);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s;
+
+  &:hover {
+    background: var(--highlight);
+  }
+`;
+
+interface StatusProps {
+  connected: boolean;
+}
+
+const Status = styled.p<StatusProps>`
+  margin-top: 10px;
+  font-size: 16px;
+  font-weight: bold;
+  color: ${({ connected }) => (connected ? "green" : "red")};
+`;
+
 const TerminalBox = styled.div`
   width: 80%;
   max-width: 600px;
@@ -54,47 +81,55 @@ interface ScanResponse {
 const Scanner: React.FC = () => {
   const [scanning, setScanning] = useState(false);
   const [logMessages, setLogMessages] = useState<string[]>([]);
+  const [socket, setSocket] = useState<Socket | null>(null);
+  const [connected, setConnected] = useState(false);
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
-  const [socket, setSocket] = useState<Socket | null>(null);
 
-  useEffect(() => {
-    if (!token) {
-      navigate("/"); // Redirect to login if no token
-      return;
-    }
+  const connectSocket = () => {
+    if (socket) return;
 
     const newSocket = io("http://127.0.0.1:5000", {
-      query: { token },
       transports: ["websocket"],
+      query: { token },
+    });
+
+    newSocket.on("connect", () => {
+      console.log("WebSocket Connected!");
+      setConnected(true);
+    });
+
+    newSocket.on("disconnect", () => {
+      console.log("WebSocket Disconnected!");
+      setConnected(false);
+    });
+
+    newSocket.on("connect_error", (error) => {
+      console.error("WebSocket Connection Error:", error);
+      setConnected(false);
     });
 
     newSocket.on("scan_update", (data: ScanResponse) => {
-      setLogMessages((prev) => [...prev, data.message]); // Append new message
+      setLogMessages((prev) => [...prev, data.message]);
       setScanning(true);
     });
 
-    newSocket.on("scan_error", (error: { message: string }) => {
+    newSocket.on("scan_error", (error) => {
       setLogMessages((prev) => [...prev, `Error: ${error.message}`]);
       setScanning(false);
     });
 
     setSocket(newSocket);
-
-    return () => {
-      newSocket.emit("handle_disconnect");
-      newSocket.disconnect();
-    };
-  }, [navigate, token]);
+  };
 
   const toggleScanning = () => {
     if (!socket) return;
 
     if (!scanning) {
-      setLogMessages([]); // Clear log before new scan
-      socket.emit("start_scan");
+      setLogMessages([]);
+      socket.emit("websocket_start_scan");
     } else {
-      socket.emit("handle_disconnect");
+      socket.emit("websocket_handle_disconnect");
       setScanning(false);
       setLogMessages((prev) => [...prev, "Scan stopped."]);
     }
@@ -103,7 +138,11 @@ const Scanner: React.FC = () => {
   return (
     <ScannerWrapper>
       <h2>Scanner</h2>
-      <ScanButton onClick={toggleScanning}>
+      <ConnectButton onClick={connectSocket} disabled={connected}>
+        {connected ? "Connected" : "Connect"}
+      </ConnectButton>
+      <Status connected={connected}>{connected ? "Connected" : "Disconnected"}</Status>
+      <ScanButton onClick={toggleScanning} disabled={!connected}>
         {scanning ? "Stop Scanning" : "Start Scanning"}
       </ScanButton>
       <TerminalBox>

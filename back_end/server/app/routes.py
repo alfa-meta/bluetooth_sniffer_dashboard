@@ -1,10 +1,12 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity
+from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity, verify_jwt_in_request
 from flask_bcrypt import Bcrypt
-from flask_socketio import emit
+from flask_socketio import emit, disconnect
+import threading
+import subprocess
 from config import Config
 from .models import Device, User, db
-import subprocess
+from . import socketio
 
 main_bp = Blueprint('main', __name__)
 bcrypt = Bcrypt()
@@ -19,7 +21,6 @@ if not Config.PASSWORD_SALT or not Config.JWT_SECRET_KEY:
 @main_bp.route("/register", methods=["POST"])
 def register():
     try:
-        print(PASSWORD_SALT)
         data = request.get_json()
         if not data or "email" not in data or "password" not in data or "username" not in data:
             return jsonify({"message": "Missing required fields"}), 400
@@ -36,8 +37,9 @@ def register():
         access_token = create_access_token(identity=user.email)
         return jsonify(access_token=access_token), 200
     except Exception as e:
-        print("Error:", e)
+        print("Error in register:", e)
         return jsonify({"message": "An error occurred, please try again later"}), 500
+
 
 @main_bp.route("/login", methods=["POST"])
 def login():
@@ -48,15 +50,13 @@ def login():
 
         user = User.query.filter_by(email=data["email"]).first()
 
-        if user:
-            print(user.password, data["password"], PASSWORD_SALT)  # Only if user exists
-            if bcrypt.check_password_hash(user.password, data["password"] + PASSWORD_SALT):
-                access_token = create_access_token(identity=user.email)
-                return jsonify(access_token=access_token), 200
+        if user and bcrypt.check_password_hash(user.password, data["password"] + PASSWORD_SALT):
+            access_token = create_access_token(identity=user.email)
+            return jsonify(access_token=access_token), 200
 
         return jsonify({"message": "Invalid credentials"}), 401
     except Exception as e:
-        print("Error:", e)
+        print("Error in login:", e)
         return jsonify({"message": "An error occurred, please try again later"}), 500
 
 
@@ -75,6 +75,7 @@ def protected():
         print(f"Error in protected route: {e}")
         return jsonify({"message": "An error occurred, please try again later"}), 500
 
+
 @main_bp.route("/users", methods=["GET"])
 @jwt_required()
 def get_all_users():
@@ -85,6 +86,7 @@ def get_all_users():
     except Exception as e:
         print(f"Error in get_all_users: {e}")
         return jsonify({"message": "An error occurred, please try again later"}), 500
+
 
 @main_bp.route("/delete_user/<int:user_id>", methods=["DELETE"])
 @jwt_required()
@@ -101,6 +103,7 @@ def delete_user(user_id):
         print(f"Error in delete_user: {e}")
         return jsonify({"message": "An error occurred, please try again later"}), 500
 
+
 @main_bp.route('/devices', methods=['GET'])
 @jwt_required()
 def get_all_devices():
@@ -112,43 +115,63 @@ def get_all_devices():
         print(f"Error in get_all_devices: {e}")
         return jsonify({"message": "An error occurred, please try again later"}), 500
 
-@main_bp.route("/add_device", methods=["POST"])
-@jwt_required()
-def add_device():
-    try:
-        data = request.get_json()
-        if not data or not all(key in data for key in ["mac_address", "device_name", "last_seen", "email"]):
-            return jsonify({"message": "Missing required fields"}), 400
 
-        new_device = Device(mac_address=data["mac_address"], device_name=data["device_name"], last_seen=data["last_seen"], email=data["email"])
-        db.session.add(new_device)
-        db.session.commit()
-        return jsonify({"message": "Device added successfully"}), 201
-    except Exception as e:
-        print(f"Error in add_device: {e}")
-        return jsonify({"message": "An error occurred, please try again later"}), 500
-
-@jwt_required()
-def start_scan():
+@socketio.on("websocket_handle_connect")
+def websocket_handle_connect():
+    token = request.args.get("token")  # Extract token from query params
+    if not token:
+        disconnect()
+        return
     try:
+        verify_jwt_in_request()  # Validate JWT
         user_email = get_jwt_identity()
+        print(f"User {user_email} connected")
+    except Exception as e:
+        print(f"WebSocket connection error: {e}")
+        disconnect()
+
+
+@socketio.on("websocket_start_scan")
+@jwt_required()
+def websocket_start_scan():
+    try:
+        verify_jwt_in_request()
+        user_email = get_jwt_identity()
+
         process = subprocess.Popen(
-            ["python", "../../sniffer/main.py"], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            ["python", "../../sniffer/main.py"],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
         )
         processes[user_email] = process
+
+        def stream_output():
+            try:
+                for line in iter(process.stdout.readline, ''):
+                    if process.poll() is not None:  # Check if the process has ended
+                        break
+                    emit("scan_update", {"message": line.strip()})
+            except Exception as e:
+                print(f"Error streaming output: {e}")
+            finally:
+                process.stdout.close()
+
+        threading.Thread(target=stream_output, daemon=True).start()
+
         emit("scan_update", {"message": "Scanning started", "pid": process.pid})
     except Exception as e:
         print(f"Error in start_scan: {e}")
         emit("scan_error", {"message": "Error starting scan", "error": str(e)})
 
+
+@socketio.on("websocket_handle_disconnect")
 @jwt_required()
-def handle_disconnect():
+def websocket_handle_disconnect():
     try:
         user_email = get_jwt_identity()
         if user_email in processes:
             process = processes.pop(user_email)
             process.terminate()
-            process.wait()
+            process.wait()  # Ensure process is properly terminated
             print(f"Stopped process {process.pid}")
     except Exception as e:
         print(f"Error in handle_disconnect: {e}")
