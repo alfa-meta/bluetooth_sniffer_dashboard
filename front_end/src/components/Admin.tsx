@@ -64,7 +64,7 @@ const Td = styled.td`
   border-right: 2px solid var(--border-color);
 `;
 
-const Button = styled.button`
+const DeleteButton = styled.button`
   padding: 5px 10px;
   background: red;
   color: white;
@@ -101,6 +101,8 @@ const Admin: React.FC = () => {
       // Check error response
       if (err.response?.status === 401) {
         alert("Session expired. Please log in again.");
+        localStorage.removeItem("token");
+        navigate("/");
       } else {
         setError("Failed to fetch user data");
       }
@@ -114,8 +116,9 @@ const Admin: React.FC = () => {
   }, [fetchUsers]);
 
   const handleDelete = async (uid: number, username: string) => {
-    if (!window.confirm(`Are you sure you want to delete ${username}?`)) return;
-
+    const confirmDelete = await window.confirm(`Are you sure you want to delete ${username}?`);
+    if (!confirmDelete) return; // Stop if the user cancels the action
+  
     const token = localStorage.getItem("token");
     if (!token) {
       setError("No token found, please login");
@@ -176,9 +179,9 @@ const Admin: React.FC = () => {
                 <Td>{user.username}</Td>
                 <Td>{user.email}</Td>
                 <Td>
-                  <Button onClick={() => handleDelete(user.uid, user.username)}>
+                  <DeleteButton onClick={() => handleDelete(user.uid, user.username)}>
                     Delete
-                  </Button>
+                  </DeleteButton>
                 </Td>
               </tr>
             ))}

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 
+// Styled component for the main settings container
 const SettingsWrapper = styled.div`
   width: 100%;
   height: 100%;
@@ -12,6 +13,7 @@ const SettingsWrapper = styled.div`
   overflow: auto;
 `;
 
+// Styled component for the settings grid layout
 const SettingsGrid = styled.div`
   display: grid;
   grid-template-columns: 1fr 2fr;
@@ -22,6 +24,7 @@ const SettingsGrid = styled.div`
   justify-content: center;
 `;
 
+// Styled component for the labels in the settings grid
 const Label = styled.div`
   font-size: 18px;
   font-weight: bold;
@@ -33,6 +36,7 @@ const Label = styled.div`
   padding-right: 10px;
 `;
 
+// Styled component for content sections
 const Content = styled.div`
   display: flex;
   flex-wrap: wrap;
@@ -41,6 +45,7 @@ const Content = styled.div`
   align-items: center;
 `;
 
+// Styled component for theme selection buttons
 const ThemeItem = styled.div`
   padding: 10px 20px;
   background: var(--button-bg);
@@ -54,6 +59,7 @@ const ThemeItem = styled.div`
   }
 `;
 
+// Styled button component
 const Button = styled.button`
   padding: 10px 15px;
   background: var(--button-bg);
@@ -68,6 +74,7 @@ const Button = styled.button`
   }
 `;
 
+// Styled input component for database location
 const Input = styled.input`
   padding: 8px;
   width: 100%;
@@ -75,6 +82,7 @@ const Input = styled.input`
   border-radius: 5px;
 `;
 
+// List of available themes
 const themes = [
   { name: "Gruvbox Dark (Default)", className: "" },
   { name: "Monochrome", className: "monochrome" },
@@ -84,15 +92,15 @@ const themes = [
 ];
 
 const Settings: React.FC = () => {
-  const [email, setEmail] = useState<string | null>(null);
-  const navigate = useNavigate();
+  const [email, setEmail] = useState<string | null>(null); // State to store user email
+  const navigate = useNavigate(); // Hook for programmatic navigation
 
   useEffect(() => {
     const fetchUserEmail = async () => {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("token"); // Retrieve authentication token from local storage
       if (!token) {
         localStorage.removeItem("token");
-        navigate("/");
+        navigate("/"); // Redirect to home page if token is missing
         return;
       }
 
@@ -107,11 +115,11 @@ const Settings: React.FC = () => {
 
         const data = await response.json();
         if (response.ok) {
-          setEmail(data.email);
+          setEmail(data.email); // Set user email if response is successful
         } else {
           console.error("Error fetching user data:", data.message);
           localStorage.removeItem("token");
-          navigate("/");
+          navigate("/"); // Redirect on error
         }
       } catch (error) {
         console.error("Error:", error);
@@ -123,6 +131,7 @@ const Settings: React.FC = () => {
     fetchUserEmail();
   }, [navigate]);
 
+  // Function to change the theme by updating the body's className
   const changeTheme = (className: string) => {
     document.body.className = className;
   };
@@ -132,19 +141,21 @@ const Settings: React.FC = () => {
       <h2>Settings</h2>
       <SettingsGrid>
         <Label>E-mail</Label>
-        <Content>{email || "Loading..."}</Content>
+        <Content>{email || "Loading..."}</Content> {/* Display email or loading text */}
 
         <Label>Change Password</Label>
         <Content>
-          <Button>Change Password</Button>
+          <Button>Change Password</Button> {/* Button for changing password */}
         </Content>
 
         <Label>Database Location</Label>
         <Content>
-          <Input type="text" placeholder="Enter database path" />
+          <Input type="text" placeholder="Enter database path" /> {/* Input field for database path */}
         </Content>
+        
         <Label>Themes</Label>
         <Content>
+          {/* Render available themes as selectable buttons */}
           {themes.map((theme) => (
             <ThemeItem
               key={theme.name}
