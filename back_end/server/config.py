@@ -1,4 +1,7 @@
+from dotenv import load_dotenv
 import os
+
+load_dotenv()
 
 class Config:
     basedir = os.path.abspath(os.path.dirname(__file__))
