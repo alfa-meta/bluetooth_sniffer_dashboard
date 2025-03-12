@@ -165,7 +165,12 @@ const Scanner: React.FC = () => {
   };
 
   const disconnectSocket = () => {
+    toggleScanning()
     if (socket) {
+      // Send a custom disconnect request to the server
+      socket.emit("websocket_handle_disconnect", { reason: "User initiated disconnect" });
+      
+      // Then disconnect
       socket.disconnect();
       setSocket(null);
       setConnected(false);
@@ -180,7 +185,7 @@ const Scanner: React.FC = () => {
       socket.emit("websocket_start_scan");
       setLogMessages((prev) => [...prev, "Scanning started..."]);
     } else {
-      socket.emit("websocket_stop_scan");
+      socket.emit("websocket_handle_disconnect");
       setLogMessages((prev) => [...prev, "Scanning stopped."]);
     }
     setScanning(!scanning);

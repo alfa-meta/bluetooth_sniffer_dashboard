@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity, verify_jwt_in_request, decode_token
 from flask_bcrypt import Bcrypt
 from flask_socketio import emit, disconnect
-import threading
+import asyncio
 import subprocess
 from config import Config
 from .models import Device, User, db
@@ -117,6 +117,38 @@ def get_all_devices():
         return jsonify({"message": "An error occurred, please try again later"}), 500
 
 
+@main_bp.route("/add_device", methods=["POST"])
+@jwt_required()
+def add_device():
+    try:
+        data = request.get_json()
+ 
+        if not data:
+            return jsonify({"message": "No data provided"}), 400
+ 
+        mac_address = data.get("mac_address")
+        device_name = data.get("device_name")
+        last_seen = data.get("last_seen")
+        email = data.get("email")
+
+        if not all([mac_address, device_name, last_seen, email]):
+            return jsonify({"message": "Missing required fields"}), 400
+ 
+        new_device = Device(
+            mac_address=mac_address,
+            device_name=device_name,
+            last_seen=last_seen,
+            email=email
+        )
+
+        db.session.add(new_device)
+        db.session.commit()
+
+        return jsonify({"message": "Device added successfully"}), 201
+    except Exception as e:
+        print("Error:", e)
+        return jsonify({"message": "An error occurred, please try again later"}), 500
+
 @socketio.on("websocket_handle_connect")
 def websocket_handle_connect():
     token = request.args.get("token")  # Extract token from query params
@@ -140,6 +172,56 @@ def websocket_handle_connect():
 @socketio.on("websocket_start_scan")
 def websocket_start_scan():
     try:
+        token = request.args.get("token")
+        if not token:
+            print("Missing token, disconnecting WebSocket.")
+            disconnect()
+            return
+
+        decoded_token = decode_token(token)
+        user_email = decoded_token.get("sub")
+
+        print(user_email, "started to scan")
+        emit("scan_update", {"message": "Scanning started "})
+
+        async def run_scan(sid):
+            process = await asyncio.create_subprocess_exec(
+                "python3", "-u", "../sniffer/main.py",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
+            
+            async def read_stream(stream, label):
+                while True:
+                    # Check if the WebSocket is still connected
+                    if not socketio.server.manager.is_connected(sid, '/'):
+                        print("WebSocket disconnected, stopping scan.")
+                        process.terminate()
+                        break
+                    line = await stream.readline()
+                    if not line:
+                        break
+                    emit("scan_update", {"message": line.decode().strip()})
+            
+            await asyncio.gather(
+                read_stream(process.stdout, "STDOUT"),
+                read_stream(process.stderr, "STDERR")
+            )
+            await process.wait()
+            emit("scan_update", {"message": "Scanning stopped "})
+
+        # Start async scan using the current request's session id
+        asyncio.run(run_scan(request.sid))
+    except Exception as e:
+        print(f"Error in start_scan: {e}")
+        emit("scan_error", {"message": "Error starting scan", "error": str(e)})
+
+
+
+@socketio.on("websocket_handle_disconnect")
+@jwt_required()
+def websocket_handle_disconnect():
+    try:
         token = request.args.get("token")  # Extract token from query params
         if not token:
             print("Missing token, disconnecting WebSocket.")
@@ -149,46 +231,13 @@ def websocket_start_scan():
         decoded_token = decode_token(token)  # Manually decode the JWT token
         user_email = decoded_token.get("sub")  # Extract user identity
 
-        # Run the scanner script in unbuffered mode so output appears in real time
-        process = subprocess.Popen(
-            ["python3", "-u", "../sniffer/main.py"],
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
-        )
-        processes[user_email] = process
-
-        print(user_email, "started to scan")
-
-        def stream_output():
-            try:
-                print("HELLO THIS NEVER HAPPENS")
-                print(os.getcwd())
-                for line in iter(process.stdout.readline, ''):
-                    if process.poll() is not None:  # Check if the process has ended
-                        break
-                    emit("scan_update", {"message": line.strip()})
-                    print("Update sent")
-            except Exception as e:
-                print(f"Error streaming output: {e}")
-            finally:
-                process.stdout.close()
-
-        stream_output()
-
-        emit("scan_update", {"message": "Scanning started 1111", "pid": process.pid})
-    except Exception as e:
-        print(f"Error in start_scan: {e}")
-        emit("scan_error", {"message": "Error starting scan", "error": str(e)})
-
-
-@socketio.on("websocket_handle_disconnect")
-@jwt_required()
-def websocket_handle_disconnect():
-    try:
-        user_email = get_jwt_identity()
+        print(f"{user_email} is Disconnecting")
+        
         if user_email in processes:
             process = processes.pop(user_email)
             process.terminate()
             process.wait()  # Ensure process is properly terminated
             print(f"Stopped process {process.pid}")
+        
     except Exception as e:
         print(f"Error in handle_disconnect: {e}")
