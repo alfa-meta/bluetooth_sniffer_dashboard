@@ -7,6 +7,7 @@ import subprocess
 from config import Config
 from .models import Device, User, db
 from . import socketio
+import os
 
 main_bp = Blueprint('main', __name__)
 bcrypt = Bcrypt()
@@ -145,30 +146,35 @@ def websocket_start_scan():
             disconnect()
             return
 
-
         decoded_token = decode_token(token)  # Manually decode the JWT token
         user_email = decoded_token.get("sub")  # Extract user identity
-        
+
+        # Run the scanner script in unbuffered mode so output appears in real time
         process = subprocess.Popen(
-            ["python", "../../sniffer/main.py"],
+            ["python3", "-u", "../sniffer/main.py"],
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
         )
         processes[user_email] = process
 
+        print(user_email, "started to scan")
+
         def stream_output():
             try:
+                print("HELLO THIS NEVER HAPPENS")
+                print(os.getcwd())
                 for line in iter(process.stdout.readline, ''):
                     if process.poll() is not None:  # Check if the process has ended
                         break
                     emit("scan_update", {"message": line.strip()})
+                    print("Update sent")
             except Exception as e:
                 print(f"Error streaming output: {e}")
             finally:
                 process.stdout.close()
 
-        threading.Thread(target=stream_output, daemon=True).start()
+        stream_output()
 
-        emit("scan_update", {"message": "Scanning started", "pid": process.pid})
+        emit("scan_update", {"message": "Scanning started 1111", "pid": process.pid})
     except Exception as e:
         print(f"Error in start_scan: {e}")
         emit("scan_error", {"message": "Error starting scan", "error": str(e)})
