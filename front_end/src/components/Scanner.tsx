@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { io, Socket } from "socket.io-client";
@@ -86,13 +86,56 @@ const Scanner: React.FC = () => {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
+  useEffect(() => {
+    const fetchUserEmail = async () => {
+      const token = localStorage.getItem("token"); // Retrieve authentication token from local storage
+      if (!token) {
+        localStorage.removeItem("token");
+        navigate("/"); // Redirect to home page if token is missing
+        return;
+      }
+
+      try {
+        const response = await fetch("http://localhost:5000/protected", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          console.error("Error fetching user data:", data.message);
+          localStorage.removeItem("token");
+          navigate("/"); // Redirect on error
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        localStorage.removeItem("token");
+        navigate("/");
+      }
+    };
+
+    fetchUserEmail();
+  }, [navigate]);
+
   const connectSocket = () => {
     if (socket) return;
 
+    const storedToken = localStorage.getItem("token");
+    if (!storedToken) {
+      console.error("Missing auth token, unable to connect WebSocket");
+      localStorage.removeItem("token");
+      navigate("/");
+      return;
+    }
+
     const newSocket = io("http://127.0.0.1:5000", {
       transports: ["websocket"],
-      query: { token },
+      query: { token: storedToken },
     });
+
 
     newSocket.on("connect", () => {
       console.log("WebSocket Connected!");

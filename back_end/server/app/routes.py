@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity, verify_jwt_in_request
+from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity, verify_jwt_in_request, decode_token
 from flask_bcrypt import Bcrypt
 from flask_socketio import emit, disconnect
 import threading
@@ -120,12 +120,17 @@ def get_all_devices():
 def websocket_handle_connect():
     token = request.args.get("token")  # Extract token from query params
     if not token:
+        print("Missing token, disconnecting WebSocket.")
         disconnect()
         return
+
     try:
-        verify_jwt_in_request()  # Validate JWT
-        user_email = get_jwt_identity()
-        print(f"User {user_email} connected")
+        decoded_token = decode_token(token)  # Manually decode the JWT token
+        user_email = decoded_token.get("sub")  # Extract user identity
+        if not user_email:
+            raise ValueError("Invalid token payload")
+
+        print(f"User {user_email} connected via WebSocket")
     except Exception as e:
         print(f"WebSocket connection error: {e}")
         disconnect()
