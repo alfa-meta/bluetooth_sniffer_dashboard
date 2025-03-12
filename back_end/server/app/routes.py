@@ -137,12 +137,18 @@ def websocket_handle_connect():
 
 
 @socketio.on("websocket_start_scan")
-@jwt_required()
 def websocket_start_scan():
     try:
-        verify_jwt_in_request()
-        user_email = get_jwt_identity()
+        token = request.args.get("token")  # Extract token from query params
+        if not token:
+            print("Missing token, disconnecting WebSocket.")
+            disconnect()
+            return
 
+
+        decoded_token = decode_token(token)  # Manually decode the JWT token
+        user_email = decoded_token.get("sub")  # Extract user identity
+        
         process = subprocess.Popen(
             ["python", "../../sniffer/main.py"],
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True

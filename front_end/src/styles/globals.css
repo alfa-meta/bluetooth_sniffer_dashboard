@@ -20,6 +20,7 @@ body.monochrome {
   --highlight: #7ba7d6;
   --button-bg: #5c8ac6;
   --button-hover: #88b3e0;
+  --red: #c0392b;
 }
 
 /* Analogous Theme (Blue, Teal, Green) */
@@ -31,6 +32,7 @@ body.analogous {
   --highlight: #80c4be;
   --button-bg: #5fa68a;
   --button-hover: #78b8a3;
+  --red: #b0302d;
 }
 
 /* Complementary Theme (Blue and Orange) */
@@ -42,6 +44,7 @@ body.complementary {
   --highlight: #d07e30;
   --button-bg: #e09b5f;
   --button-hover: #d07e30;
+  --red: #c0392b;
 }
 
 /* Triadic Theme (Red, Yellow, Blue) */
@@ -53,6 +56,7 @@ body.triadic {
   --highlight: #d6a253;
   --button-bg: #d88f6b;
   --button-hover: #a07a5c;
+  --red: #d72638;
 }
 
 /* Complementary Theme (Blue and Orange) - Light Mode */
@@ -64,18 +68,21 @@ body.complementary-light {
   --highlight: #455a75;
   --button-bg: #e0a571;
   --button-hover: #d6782e;
+  --red: #b0302d;
 }
 
 /* GitHub Theme - Softer Light Mode with Darker Grey */
 body.github-light {
-  --bg-dark: #dadfe5; /* Darker than #eaeef2 */
-  --bg-light: #e6eaee; /* Muted white */
-  --border-color: #a7b0ba; /* Darker grey for borders */
-  --text-light: #1b1f24; /* Slightly deeper black */
-  --highlight: #074a91; /* Less bright blue */
-  --button-bg: #238636; /* Muted green */
-  --button-hover: #1b6b2a; /* Darker hover effect */
+  --bg-dark: #dadfe5;
+  --bg-light: #e6eaee;
+  --border-color: #a7b0ba;
+  --text-light: #1b1f24;
+  --highlight: #074a91;
+  --button-bg: #238636;
+  --button-hover: #1b6b2a;
+  --red: #cf222e;
 }
+
 
 body {
   background-color: var(--bg-dark);

@@ -3,6 +3,10 @@ import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { io, Socket } from "socket.io-client";
 
+interface StatusProps {
+  connected: boolean;
+}
+
 const ScannerWrapper = styled.div`
   width: 100%;
   height: 100vh;
@@ -31,11 +35,11 @@ const ScanButton = styled.button`
   }
 `;
 
-const ConnectButton = styled.button`
+const ConnectButton = styled.button<StatusProps>`
   margin-top: 10px;
   padding: 10px 20px;
   font-size: 16px;
-  background: var(--button-bg);
+  background: ${({ connected }) => (connected ? "red" : "var(--button-bg)")};
   color: var(--text-light);
   border: none;
   border-radius: 5px;
@@ -43,13 +47,9 @@ const ConnectButton = styled.button`
   transition: background 0.3s;
 
   &:hover {
-    background: var(--highlight);
+    background: ${({ connected }) => (connected ? "#cc0000" : "var(--highlight)")};
   }
 `;
-
-interface StatusProps {
-  connected: boolean;
-}
 
 const Status = styled.p<StatusProps>`
   margin-top: 10px;
@@ -84,14 +84,13 @@ const Scanner: React.FC = () => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [connected, setConnected] = useState(false);
   const navigate = useNavigate();
-  const token = localStorage.getItem("token");
 
   useEffect(() => {
     const fetchUserEmail = async () => {
-      const token = localStorage.getItem("token"); // Retrieve authentication token from local storage
+      const token = localStorage.getItem("token");
       if (!token) {
         localStorage.removeItem("token");
-        navigate("/"); // Redirect to home page if token is missing
+        navigate("/"); // Redirect if token is missing
         return;
       }
 
@@ -121,7 +120,7 @@ const Scanner: React.FC = () => {
   }, [navigate]);
 
   const connectSocket = () => {
-    if (socket) return;
+    if (socket) return; // Already connected
 
     const storedToken = localStorage.getItem("token");
     if (!storedToken) {
@@ -135,7 +134,7 @@ const Scanner: React.FC = () => {
       transports: ["websocket"],
       query: { token: storedToken },
     });
-
+    
 
     newSocket.on("connect", () => {
       console.log("WebSocket Connected!");
@@ -165,24 +164,33 @@ const Scanner: React.FC = () => {
     setSocket(newSocket);
   };
 
+  const disconnectSocket = () => {
+    if (socket) {
+      socket.disconnect();
+      setSocket(null);
+      setConnected(false);
+      setLogMessages((prev) => [...prev, "WebSocket Disconnected."]);
+    }
+  };
+
   const toggleScanning = () => {
     if (!socket) return;
 
     if (!scanning) {
-      setLogMessages([]);
-      socket.emit("websocket_start_scan");
+      socket.emit("start_scan");
+      setLogMessages((prev) => [...prev, "Scanning started..."]);
     } else {
-      socket.emit("websocket_handle_disconnect");
-      setScanning(false);
-      setLogMessages((prev) => [...prev, "Scan stopped."]);
+      socket.emit("stop_scan");
+      setLogMessages((prev) => [...prev, "Scanning stopped."]);
     }
+    setScanning(!scanning);
   };
 
   return (
     <ScannerWrapper>
       <h2>Scanner</h2>
-      <ConnectButton onClick={connectSocket} disabled={connected}>
-        {connected ? "Connected" : "Connect"}
+      <ConnectButton onClick={connected ? disconnectSocket : connectSocket} connected={connected}>
+        {connected ? "Disconnect" : "Connect"}
       </ConnectButton>
       <Status connected={connected}>{connected ? "Connected" : "Disconnected"}</Status>
       <ScanButton onClick={toggleScanning} disabled={!connected}>
