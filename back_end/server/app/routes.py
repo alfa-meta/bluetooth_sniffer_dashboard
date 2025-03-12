@@ -184,34 +184,33 @@ def websocket_start_scan():
         print(user_email, "started to scan")
         emit("scan_update", {"message": "Scanning started "})
 
-        async def run_scan(sid):
+        async def run_scan(sid, user_email):
+            processes[user_email] = True
+
             process = await asyncio.create_subprocess_exec(
                 "python3", "-u", "../sniffer/main.py",
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE
             )
+
             
-            async def read_stream(stream, label):
-                while True:
-                    # Check if the WebSocket is still connected
-                    if not socketio.server.manager.is_connected(sid, '/'):
-                        print("WebSocket disconnected, stopping scan.")
-                        process.terminate()
-                        break
+            async def read_stream(stream, label, user_email):
+                while processes[user_email] == True:
+                    print("Still Scanning Stream")
                     line = await stream.readline()
                     if not line:
                         break
                     emit("scan_update", {"message": line.decode().strip()})
             
             await asyncio.gather(
-                read_stream(process.stdout, "STDOUT"),
-                read_stream(process.stderr, "STDERR")
+                read_stream(process.stdout, "STDOUT", user_email),
+                read_stream(process.stderr, "STDERR", user_email)
             )
             await process.wait()
             emit("scan_update", {"message": "Scanning stopped "})
 
         # Start async scan using the current request's session id
-        asyncio.run(run_scan(request.sid))
+        asyncio.run(run_scan(request.sid, user_email))
     except Exception as e:
         print(f"Error in start_scan: {e}")
         emit("scan_error", {"message": "Error starting scan", "error": str(e)})
@@ -225,6 +224,7 @@ def websocket_handle_disconnect():
         token = request.args.get("token")  # Extract token from query params
         if not token:
             print("Missing token, disconnecting WebSocket.")
+            emit("disconnect")
             disconnect()
             return
 

@@ -61,7 +61,7 @@ const Status = styled.p<StatusProps>`
 const TerminalBox = styled.div`
   width: 80%;
   max-width: 600px;
-  height: 300px;
+  height: 450px;
   margin-top: 20px;
   padding: 10px;
   background: black;
@@ -165,7 +165,6 @@ const Scanner: React.FC = () => {
   };
 
   const disconnectSocket = () => {
-    toggleScanning()
     if (socket) {
       // Send a custom disconnect request to the server
       socket.emit("websocket_handle_disconnect", { reason: "User initiated disconnect" });
