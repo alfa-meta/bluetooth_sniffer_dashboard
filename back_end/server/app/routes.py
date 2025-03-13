@@ -171,50 +171,44 @@ def websocket_handle_connect():
 
 @socketio.on("websocket_start_scan")
 def websocket_start_scan():
+    token = request.args.get("token")
+    if not token:
+        disconnect()
+        return
     try:
-        token = request.args.get("token")
-        if not token:
-            print("Missing token, disconnecting WebSocket.")
-            disconnect()
-            return
-
         decoded_token = decode_token(token)
         user_email = decoded_token.get("sub")
-
-        print(user_email, "started to scan")
-        emit("scan_update", {"message": "Scanning started "})
-
-        async def run_scan(sid, user_email):
-            processes[user_email] = True
-
-            process = await asyncio.create_subprocess_exec(
-                "python3", "-u", "../sniffer/main.py",
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
-            )
-
-            
-            async def read_stream(stream, label, user_email):
-                while processes[user_email] == True:
-                    print("Still Scanning Stream")
-                    line = await stream.readline()
-                    if not line:
-                        break
-                    emit("scan_update", {"message": line.decode().strip()})
-            
-            await asyncio.gather(
-                read_stream(process.stdout, "STDOUT", user_email),
-                read_stream(process.stderr, "STDERR", user_email)
-            )
-            await process.wait()
-            emit("scan_update", {"message": "Scanning stopped "})
-
-        # Start async scan using the current request's session id
-        asyncio.run(run_scan(request.sid, user_email))
+        # Capture request data before leaving the request context
+        sid = request.sid
+        socketio.start_background_task(lambda: asyncio.run(run_scan_async(user_email, sid)))
     except Exception as e:
-        print(f"Error in start_scan: {e}")
-        emit("scan_error", {"message": "Error starting scan", "error": str(e)})
+        socketio.emit("scan_error", {"message": "Error starting scan", "error": str(e)}, room=request.sid)
 
+
+async def run_scan_async(user_email, sid):
+    socketio.emit("scan_update", {"message": "Scanning started"}, room=sid)
+    
+    process = await asyncio.create_subprocess_exec(
+        "python3", "-u", "../sniffer/main.py",
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE
+    )
+    processes[user_email] = process
+
+    async def read_stream(stream):
+        while True:
+            line = await stream.readline()
+            if not line:
+                break
+            socketio.emit("scan_update", {"message": line.decode().strip()}, room=sid)
+
+    await asyncio.gather(
+        read_stream(process.stdout),
+        read_stream(process.stderr)
+    )
+    
+    await process.wait()
+    socketio.emit("scan_update", {"message": "Scanning stopped"}, room=sid)
 
 
 @socketio.on("websocket_handle_disconnect")

@@ -26,8 +26,8 @@ def create_app():
     app.register_blueprint(main_bp)
 
     socketio.init_app(app)
-    socketio.on_event("connect", websocket_handle_connect)
-    socketio.on_event("start_scan", websocket_start_scan)
-    socketio.on_event("handle_disconnect", websocket_handle_disconnect)
+    socketio.on_event("websocket_handle_connect", websocket_handle_connect)
+    socketio.on_event("websocket_start_scan", websocket_start_scan)
+    socketio.on_event("websocket_handle_disconnect", websocket_handle_disconnect)
 
     return app, socketio
