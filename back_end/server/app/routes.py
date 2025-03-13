@@ -189,7 +189,7 @@ async def run_scan_async(user_email, sid):
     socketio.emit("scan_update", {"message": "Scanning started"}, room=sid)
     
     process = await asyncio.create_subprocess_exec(
-        "python3", "-u", "../sniffer/main.py",
+        "python3", "-u", "sniffer/main.py",
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE
     )

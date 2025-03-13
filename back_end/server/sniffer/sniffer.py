@@ -16,6 +16,7 @@ class Sniffer():
         self.last_check = datetime.now()
         self.user_data: list = user_data
         self.device_data: list = device_data
+        self.scan_time: int = 15
         self.sniffer_mode: str = sniffer_mode
 
         print(f"{len(user_data)} users found in the Database")
@@ -72,7 +73,7 @@ class Sniffer():
                 process.stdin.flush()
             
             # Allow time for scanning
-            time.sleep(15)
+            time.sleep(self.scan_time)
             
             # Turn off scanning and exit
             process.stdin.write("scan off\n")
@@ -108,29 +109,6 @@ class Sniffer():
             self.last_check = datetime.now()
 
         return three_minutes_passed
-
-    # def load_env_file(self, file_path):
-    #     """
-    #         Load the .env file and extract BLE device information.
-
-    #         :return ble_devices: list of all ble_devices that have been set in the .env file
-    #     """
-    #     if not os.path.exists(file_path):
-    #         print(f"File not found: {file_path}")
-    #         return None
-
-    #     ble_devices = {}
-    #     with open(file_path, 'r') as file:
-    #         for line in file:
-    #             # Ignore empty lines or comments
-    #             if line.strip() and not line.strip().startswith('#'):
-    #                 key, value = line.split('=', 1)
-    #                 key = key.strip()
-    #                 value, *comment = value.split('#', 1)
-    #                 value = value.strip().strip('"').strip("'")  # Clean quotes if present
-    #                 ble_devices[key] = value
-        
-    #     return ble_devices
 
     def extract_addresses_and_rssi(self, json_file):
         """
