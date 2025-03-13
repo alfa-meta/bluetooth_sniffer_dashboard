@@ -3,12 +3,6 @@ import json
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-
-# # Load the HTML content from a file
-# html_file_path = 'index.html'
-# with open(html_file_path, 'r') as file:
-#     html_content = file.read()
-
 def import_json_file(path: str):
     # Load the JSON file
     with open(path, 'r') as file:
@@ -25,6 +19,12 @@ def send_email(text: str):
     sender_email = data.get('username')
     receiver_email = data.get('receiver')
     password = data.get('password')
+    websocket = data.get('websocket_connected')
+
+    if websocket == False:
+        raise ValueError("Websocket was closed in email sender")
+
+
     subject = "BLE Notification"
     body = f"Target user is within the vicinity.\n\n{text} \n\n\nBLE Notification by nRF MDK Sniffer"
 

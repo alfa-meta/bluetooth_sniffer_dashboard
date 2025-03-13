@@ -3,11 +3,10 @@ from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identi
 from flask_bcrypt import Bcrypt
 from flask_socketio import emit, disconnect
 import asyncio
-import subprocess
 from config import Config
 from .models import Device, User, db
 from . import socketio
-import os
+from .functions import set_websocket_connected, get_websocket_connected
 
 main_bp = Blueprint('main', __name__)
 bcrypt = Bcrypt()
@@ -153,6 +152,7 @@ def add_device():
 def websocket_handle_connect():
     token = request.args.get("token")  # Extract token from query params
     if not token:
+        set_websocket_connected(path="config.json", value=False)
         print("Missing token, disconnecting WebSocket.")
         disconnect()
         return
@@ -161,10 +161,13 @@ def websocket_handle_connect():
         decoded_token = decode_token(token)  # Manually decode the JWT token
         user_email = decoded_token.get("sub")  # Extract user identity
         if not user_email:
+            set_websocket_connected(path="config.json", value=False)
             raise ValueError("Invalid token payload")
 
+        set_websocket_connected(path="config.json", value=True)
         print(f"User {user_email} connected via WebSocket")
     except Exception as e:
+        set_websocket_connected(path="config.json", value=False)
         print(f"WebSocket connection error: {e}")
         disconnect()
 
@@ -176,6 +179,7 @@ def websocket_start_scan():
         disconnect()
         return
     try:
+        set_websocket_connected(path="config.json", value=True)
         decoded_token = decode_token(token)
         user_email = decoded_token.get("sub")
         # Capture request data before leaving the request context
@@ -187,7 +191,12 @@ def websocket_start_scan():
 
 async def run_scan_async(user_email, sid):
     socketio.emit("scan_update", {"message": "Scanning started"}, room=sid)
-    
+    is_websocket_connected: bool = get_websocket_connected("config.json")
+
+    print("is_websocket_connected", is_websocket_connected)
+    if is_websocket_connected == False:
+        raise ValueError("Websocket was closed in run_scan_async")
+
     process = await asyncio.create_subprocess_exec(
         "python3", "-u", "sniffer/main.py",
         stdout=asyncio.subprocess.PIPE,
@@ -195,16 +204,17 @@ async def run_scan_async(user_email, sid):
     )
     processes[user_email] = process
 
-    async def read_stream(stream):
-        while True:
+    async def read_stream(stream, is_websocket_connected: bool):
+        while is_websocket_connected:
             line = await stream.readline()
             if not line:
                 break
             socketio.emit("scan_update", {"message": line.decode().strip()}, room=sid)
+            is_websocket_connected = get_websocket_connected("config.json")
 
     await asyncio.gather(
-        read_stream(process.stdout),
-        read_stream(process.stderr)
+        read_stream(process.stdout, is_websocket_connected),
+        read_stream(process.stderr, is_websocket_connected)
     )
     
     await process.wait()
@@ -230,8 +240,10 @@ def websocket_handle_disconnect():
         if user_email in processes:
             process = processes.pop(user_email)
             process.terminate()
+            set_websocket_connected(path="config.json", value=False)
             process.wait()  # Ensure process is properly terminated
             print(f"Stopped process {process.pid}")
         
     except Exception as e:
+        set_websocket_connected(path="config.json", value=False)
         print(f"Error in handle_disconnect: {e}")

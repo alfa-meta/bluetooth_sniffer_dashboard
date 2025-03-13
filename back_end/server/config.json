@@ -1,5 +1,7 @@
 {
-    "receiver":"stkstms@protonmail.com",
-    "username":"stkstms@gmail.com",
-    "password":"rrmj hmta srpc awpr "
+    "receiver": "stkstms@protonmail.com",
+    "username": "stkstms@gmail.com",
+    "password": "rrmj hmta srpc awpr ",
+    "websocket_connected": false,
+    "scanning": false
 }
