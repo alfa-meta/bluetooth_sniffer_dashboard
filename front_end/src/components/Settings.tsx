@@ -59,29 +59,6 @@ const ThemeItem = styled.div`
   }
 `;
 
-// Styled button component
-const Button = styled.button`
-  padding: 10px 15px;
-  background: var(--button-bg);
-  color: var(--text-light);
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background 0.3s;
-
-  &:hover {
-    background: var(--highlight);
-  }
-`;
-
-// Styled input component for database location
-const Input = styled.input`
-  padding: 8px;
-  width: 100%;
-  border: 1px solid var(--text-dark);
-  border-radius: 5px;
-`;
-
 // List of available themes
 const themes = [
   { name: "Gruvbox Dark (Default)", className: "" },
@@ -142,16 +119,6 @@ const Settings: React.FC = () => {
       <SettingsGrid>
         <Label>E-mail</Label>
         <Content>{email || "Loading..."}</Content> {/* Display email or loading text */}
-
-        <Label>Change Password</Label>
-        <Content>
-          <Button>Change Password</Button> {/* Button for changing password */}
-        </Content>
-
-        <Label>Database Location</Label>
-        <Content>
-          <Input type="text" placeholder="Enter database path" /> {/* Input field for database path */}
-        </Content>
         
         <Label>Themes</Label>
         <Content>
