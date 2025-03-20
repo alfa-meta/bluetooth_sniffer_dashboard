@@ -2,6 +2,6 @@
     "receiver": "stkstms@protonmail.com",
     "username": "stkstms@gmail.com",
     "password": "rrmj hmta srpc awpr ",
-    "websocket_connected": false,
+    "websocket_connected": true,
     "scanning": false
 }

@@ -184,7 +184,7 @@ const Scanner: React.FC = () => {
       socket.emit("websocket_start_scan");
       setLogMessages((prev) => [...prev, "Scanning started..."]);
     } else {
-      socket.emit("websocket_handle_disconnect");
+      socket.emit("websocket_stop_scan");
       setLogMessages((prev) => [...prev, "Scanning stopped."]);
     }
     setScanning(!scanning);

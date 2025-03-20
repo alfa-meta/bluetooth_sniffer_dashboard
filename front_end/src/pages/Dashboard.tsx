@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Dashboard.css";
 import Sidebar from "../components/Sidebar";
-import Titlebar from "../components/Titlebar";
+// import Titlebar from "../components/Titlebar";
 import Scanner from "../components/Scanner";
 import Admin from "../components/Admin"; // Corrected import
 import Devices from "../components/Devices";
