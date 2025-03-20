@@ -2,17 +2,25 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity, verify_jwt_in_request, decode_token
 from flask_bcrypt import Bcrypt
 from flask_socketio import emit, disconnect
-import asyncio
+import threading
+import subprocess
+import select
+import os
 from config import Config
 from .models import Device, User, db
 from . import socketio
 from .functions import set_websocket_connected, get_websocket_connected
+import time
 
 main_bp = Blueprint('main', __name__)
 bcrypt = Bcrypt()
 
 PASSWORD_SALT = Config.PASSWORD_SALT
 processes = {}
+process_threads = {}
+
+scan_thread = threading.Event()
+stop_scan_event = threading.Event()
 
 if not Config.PASSWORD_SALT or not Config.JWT_SECRET_KEY:
     raise ValueError(f"Environment variables PASSWORD_SALT is {PASSWORD_SALT} JWT_SECRET_KEY is {Config.JWT_SECRET_KEY} must be set.")
@@ -171,65 +179,169 @@ def websocket_handle_connect():
         print(f"WebSocket connection error: {e}")
         disconnect()
 
+def process_monitor(user_email, process, stop_event, sid):
+    """Background thread function to monitor process output"""
+    try:
+        # Get file descriptors for the process's stdout
+        stdout_fd = process.stdout.fileno()
+        
+        # Set up polling object
+        poller = select.poll()
+        poller.register(stdout_fd, select.POLLIN)
+        
+        # Buffer for incomplete lines
+        buffer = ""
+        
+        while process.poll() is None and not stop_event.is_set():
+            # Use polling with timeout to avoid blocking
+            events = poller.poll(100)  # 100ms timeout
+            
+            if events:
+                # Data available to read
+                output = os.read(stdout_fd, 4096).decode('utf-8', errors='replace')
+                if output:
+                    # Split on newlines, keeping the remainder in the buffer
+                    buffer += output
+                    lines = buffer.split('\n')
+                    buffer = lines.pop()  # Keep the last (potentially incomplete) line
+                    
+                    for line in lines:
+                        if line:  # Only emit non-empty lines
+                            socketio.emit("scan_update", {"message": line.strip()}, room=sid)
+            
+            # Small sleep to prevent CPU hogging
+            socketio.sleep(0.01)
+        
+        # Process any remaining data in the buffer
+        if buffer:
+            socketio.emit("scan_update", {"message": buffer.strip()}, room=sid)
+            
+        # Get return code
+        return_code = process.poll()
+        if return_code is not None:
+            socketio.emit("scan_update", {"message": f"Process completed with return code {return_code}"}, room=sid)
+        else:
+            # If we got here and the process is still running, terminate it
+            process.terminate()
+            try:
+                process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait()
+            socketio.emit("scan_update", {"message": "Process was terminated"}, room=sid)
+            
+    except Exception as e:
+        socketio.emit("scan_update", {"message": f"Error monitoring process: {str(e)}"}, room=sid)
+    finally:
+        # Clean up
+        if user_email in processes:
+            # Only delete if it's still the same process
+            if processes[user_email] == process:
+                del processes[user_email]
+                
+        if user_email in process_threads:
+            # Only delete if it's still the same thread
+            del process_threads[user_email]
+            
+        stop_event.set()  # Make sure the event is set
 
 @socketio.on("websocket_start_scan")
 def websocket_start_scan():
-    token = request.args.get("token")
-    if not token:
-        disconnect()
-        return
     try:
-        set_websocket_connected(path="config.json", value=True)
+        token = request.args.get("token")
+        sid = request.sid
+        
+        if not token:
+            emit("scan_update", {"message": "Error: Missing token"})
+            return
+
         decoded_token = decode_token(token)
         user_email = decoded_token.get("sub")
-        # Capture request data before leaving the request context
-        sid = request.sid
-        socketio.start_background_task(lambda: asyncio.run(run_scan_async(user_email, sid)))
+        
+        # Stop any existing process for this user
+        if user_email in processes and processes[user_email].poll() is None:
+            try:
+                old_process = processes[user_email]
+                old_process.terminate()
+                old_process.wait(timeout=3)
+                print(f"Terminated existing process for {user_email}")
+            except Exception as e:
+                print(f"Error terminating process: {e}")
+        
+        # Create a new stop event for this process
+        stop_event = threading.Event()
+        
+        # Start the process
+        process = subprocess.Popen(
+            ["python3", "-u", "sniffer/main.py"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=False,  # We'll handle decoding manually
+            bufsize=0    # Unbuffered
+        )
+        
+        processes[user_email] = process
+        emit("scan_update", {"message": f"Started scanning process (PID: {process.pid})"})
+        print(f"Started scanning process (PID: {process.pid}) for {user_email}")
+        
+        # Start monitoring thread
+        monitor_thread = socketio.start_background_task(
+            process_monitor, 
+            user_email=user_email, 
+            process=process, 
+            stop_event=stop_event,
+            sid=sid
+        )
+        
+        process_threads[user_email] = (monitor_thread, stop_event)
+        
     except Exception as e:
-        socketio.emit("scan_error", {"message": "Error starting scan", "error": str(e)}, room=request.sid)
+        print(f"Error in websocket_start_scan: {e}")
+        emit("scan_update", {"message": f"Error starting scan: {str(e)}"})
 
-
-async def run_scan_async(user_email, sid):
-    socketio.emit("scan_update", {"message": "Scanning started"}, room=sid)
-    is_websocket_connected: bool = get_websocket_connected("config.json")
-
-    print("is_websocket_connected", is_websocket_connected)
-    if is_websocket_connected == False:
-        raise ValueError("Websocket was closed in run_scan_async")
-
-    process = await asyncio.create_subprocess_exec(
-        "python3", "-u", "sniffer/main.py",
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE
-    )
-    processes[user_email] = process
-
-    async def read_stream(stream, is_websocket_connected: bool):
-        while is_websocket_connected:
-            line = await stream.readline()
-            if not line:
-                break
-            socketio.emit("scan_update", {"message": line.decode().strip()}, room=sid)
-            is_websocket_connected = get_websocket_connected("config.json")
-
-    await asyncio.gather(
-        read_stream(process.stdout, is_websocket_connected),
-        read_stream(process.stderr, is_websocket_connected)
-    )
-    
-    await process.wait()
-    socketio.emit("scan_update", {"message": "Scanning stopped"}, room=sid)
-
+@socketio.on("websocket_stop_scan")
+def websocket_stop_scan():
+    try:
+        token = request.args.get("token")
+        if not token:
+            emit("scan_update", {"message": "Error: Missing token"})
+            return
+        
+        decoded_token = decode_token(token)
+        user_email = decoded_token.get("sub")
+        
+        if user_email in process_threads:
+            _, stop_event = process_threads[user_email]
+            stop_event.set()
+            emit("scan_update", {"message": "Stopping scan process..."})
+            print(f"Stop event set for {user_email}")
+        
+        if user_email in processes:
+            process = processes[user_email]
+            if process.poll() is None:  # Check if process is still running
+                process.terminate()
+                try:
+                    process.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    process.wait()
+                print(f"Stopped process {process.pid} for {user_email}")
+                emit("scan_update", {"message": f"Scan process terminated (PID: {process.pid})"})
+            else:
+                emit("scan_update", {"message": f"Process already completed (PID: {process.pid})"})
+        else:
+            emit("scan_update", {"message": "No active scanning process found"})
+            
+    except Exception as e:
+        print(f"Error in websocket_stop_scan: {e}")
+        emit("scan_update", {"message": f"Error stopping scan: {str(e)}"})
 
 @socketio.on("websocket_handle_disconnect")
-@jwt_required()
 def websocket_handle_disconnect():
     try:
         token = request.args.get("token")  # Extract token from query params
         if not token:
-            print("Missing token, disconnecting WebSocket.")
-            emit("disconnect")
-            disconnect()
+            print("Missing token during disconnect.")
             return
 
         decoded_token = decode_token(token)  # Manually decode the JWT token
@@ -237,12 +349,24 @@ def websocket_handle_disconnect():
 
         print(f"{user_email} is Disconnecting")
         
+        if user_email in process_threads:
+            _, stop_event = process_threads[user_email]
+            stop_event.set()
+            del process_threads[user_email]
+        
         if user_email in processes:
-            process = processes.pop(user_email)
-            process.terminate()
-            set_websocket_connected(path="config.json", value=False)
-            process.wait()  # Ensure process is properly terminated
-            print(f"Stopped process {process.pid}")
+            process = processes[user_email]
+            if process.poll() is None:  # Check if process is still running
+                process.terminate()
+                try:
+                    process.wait(timeout=3)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    process.wait()
+                print(f"Stopped process {process.pid}")
+            del processes[user_email]
+            
+        set_websocket_connected(path="config.json", value=False)
         
     except Exception as e:
         set_websocket_connected(path="config.json", value=False)

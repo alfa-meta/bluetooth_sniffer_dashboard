@@ -22,12 +22,13 @@ def create_app():
         from .models import User, Device  # Ensure all models are imported
         db.create_all()
 
-    from .routes import main_bp, websocket_handle_connect, websocket_start_scan, websocket_handle_disconnect
+    from .routes import main_bp, websocket_handle_connect, websocket_start_scan, websocket_stop_scan, websocket_handle_disconnect
     app.register_blueprint(main_bp)
 
     socketio.init_app(app)
     socketio.on_event("websocket_handle_connect", websocket_handle_connect)
     socketio.on_event("websocket_start_scan", websocket_start_scan)
+    socketio.on_event("websocket_stop_scan", websocket_stop_scan)
     socketio.on_event("websocket_handle_disconnect", websocket_handle_disconnect)
 
     return app, socketio
