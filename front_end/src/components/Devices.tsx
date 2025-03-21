@@ -214,8 +214,7 @@ const Devices: React.FC = () => {
               <tr key={device.mac_address}>
                 <Td>{device.mac_address}</Td>
                 <Td>{device.device_name}</Td>
-                <Td>{device.last_seen}</Td>
-                <Td>{device.email}</Td>
+                <Td>{new Date(parseInt(device.last_seen) * 1000).toLocaleString()}</Td>                <Td>{device.email}</Td>
                 <Td>
                   <DeleteButton
                     disabled={isDeleting}
