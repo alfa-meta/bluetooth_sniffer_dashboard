@@ -123,6 +123,21 @@ def get_all_devices():
         print(f"Error in get_all_devices: {e}")
         return jsonify({"message": "An error occurred, please try again later"}), 500
 
+@main_bp.route("/delete_device/<string:mac_address>", methods=["DELETE"])
+@jwt_required()
+def delete_device(mac_address):
+    try:
+        device = Device.query.filter_by(mac_address=mac_address).first()
+        if not device:
+            return jsonify({"message": "Device not found"}), 404
+
+        db.session.delete(device)
+        db.session.commit()
+        return jsonify({"message": "Device deleted successfully"}), 200
+    except Exception as e:
+        print(f"Error in delete_device: {e}")
+        return jsonify({"message": "An error occurred, please try again later"}), 500
+
 
 @main_bp.route("/add_device", methods=["POST"])
 @jwt_required()
@@ -234,7 +249,7 @@ def process_monitor(user_email, process, stop_event, sid):
             del process_threads[user_email]
             
         stop_event.set()  # Make sure the event is set
-        
+
 @socketio.on("websocket_start_scan")
 def websocket_start_scan():
     try:

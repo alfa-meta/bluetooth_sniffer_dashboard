@@ -92,11 +92,28 @@ const Td = styled.td`
   border-right: 2px solid var(--border-color);
 `;
 
+const DeleteButton = styled.button`
+  padding: 5px 10px;
+  background: red;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+  &:hover {
+    background: darkred;
+  }
+  &:disabled {
+    background: grey;
+    cursor: not-allowed;
+  }
+`;
+
 const Devices: React.FC = () => {
   const [devices, setDevices] = useState<Device[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const navigate = useNavigate();
 
   const fetchDevices = useCallback(async () => {
@@ -107,13 +124,10 @@ const Devices: React.FC = () => {
       navigate("/");
       return;
     }
-
     try {
       const response = await axios.get<Device[]>(
         "http://127.0.0.1:5000/devices",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       setDevices(response.data);
     } catch (err) {
@@ -126,6 +140,37 @@ const Devices: React.FC = () => {
   useEffect(() => {
     fetchDevices();
   }, [fetchDevices]);
+
+  const handleDelete = async (mac_address: string, device_name: string) => {
+    const confirmDelete = await window.confirm(`Are you sure you want to delete ${device_name}?`);
+    if (!confirmDelete) return;
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setError("No token found, please login");
+      localStorage.removeItem("token");
+      navigate("/");
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      await axios.delete(`http://127.0.0.1:5000/delete_device/${mac_address}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setDevices(devices.filter((device) => device.mac_address !== mac_address));
+    } catch (err: any) {
+      if (err.response?.status === 401) {
+        console.log("Session expired. Please log in again.");
+      } else {
+        setError("Failed to delete device");
+      }
+      localStorage.removeItem("token");
+      navigate("/");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const filteredDevices = devices.filter(
     (device) =>
@@ -161,6 +206,7 @@ const Devices: React.FC = () => {
               <Th>Device Name</Th>
               <Th>Last Seen</Th>
               <Th>User Email</Th>
+              <Th>Actions</Th>
             </tr>
           </thead>
           <tbody>
@@ -170,6 +216,14 @@ const Devices: React.FC = () => {
                 <Td>{device.device_name}</Td>
                 <Td>{device.last_seen}</Td>
                 <Td>{device.email}</Td>
+                <Td>
+                  <DeleteButton
+                    disabled={isDeleting}
+                    onClick={() => handleDelete(device.mac_address, device.device_name)}
+                  >
+                    {isDeleting ? "Deleting..." : "Delete"}
+                  </DeleteButton>
+                </Td>
               </tr>
             ))}
           </tbody>
