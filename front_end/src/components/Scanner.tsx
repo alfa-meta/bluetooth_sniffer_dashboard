@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { io, Socket } from "socket.io-client";
@@ -60,8 +60,8 @@ const Status = styled.p<StatusProps>`
 
 const TerminalBox = styled.div`
   width: 80%;
-  max-width: 600px;
-  height: 450px;
+  max-width: 800px;
+  height: 650px;
   margin-top: 20px;
   padding: 10px;
   background: black;
@@ -71,7 +71,28 @@ const TerminalBox = styled.div`
   border-radius: 5px;
   overflow-y: auto;
   border: 2px solid #444;
+
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: #555 #222;
+
+  /* Webkit browsers */
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  &::-webkit-scrollbar-track {
+    background: #222;
+    border-radius: 5px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 5px;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: #888;
+  }
 `;
+
 
 interface ScanResponse {
   message: string;
@@ -84,6 +105,38 @@ const Scanner: React.FC = () => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [connected, setConnected] = useState(false);
   const navigate = useNavigate();
+  const terminalRef = useRef<HTMLDivElement>(null);
+  const observerRef = useRef<MutationObserver | null>(null);
+
+  // Set up mutation observer for DOM changes
+  useEffect(() => {
+    if (terminalRef.current) {
+      // Force scroll to bottom on any content change
+      observerRef.current = new MutationObserver(() => {
+        if (terminalRef.current) {
+          terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
+        }
+      });
+      
+      observerRef.current.observe(terminalRef.current, {
+        childList: true,
+        subtree: true
+      });
+    }
+    
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, []);
+
+  // Alternative approach using direct manipulation when log messages change
+  useEffect(() => {
+    if (terminalRef.current) {
+      terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
+    }
+  }, [logMessages]);
 
   useEffect(() => {
     const fetchUserEmail = async () => {
@@ -152,12 +205,30 @@ const Scanner: React.FC = () => {
     });
 
     newSocket.on("scan_update", (data: ScanResponse) => {
-      setLogMessages((prev) => [...prev, data.message]);
+      setLogMessages((prev) => {
+        const newMessages = [...prev, data.message];
+        // Force scroll after state update completes
+        requestAnimationFrame(() => {
+          if (terminalRef.current) {
+            terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
+          }
+        });
+        return newMessages;
+      });
       setScanning(true);
     });
 
     newSocket.on("scan_error", (error) => {
-      setLogMessages((prev) => [...prev, `Error: ${error.message}`]);
+      setLogMessages((prev) => {
+        const newMessages = [...prev, `Error: ${error.message}`];
+        // Force scroll after state update completes
+        requestAnimationFrame(() => {
+          if (terminalRef.current) {
+            terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
+          }
+        });
+        return newMessages;
+      });
       setScanning(false);
     });
 
@@ -200,10 +271,12 @@ const Scanner: React.FC = () => {
       <ScanButton onClick={toggleScanning} disabled={!connected}>
         {scanning ? "Stop Scanning" : "Start Scanning"}
       </ScanButton>
-      <TerminalBox>
-        {logMessages.map((msg, index) => (
-          <p key={index}>{msg}</p>
-        ))}
+      <TerminalBox ref={terminalRef}>
+        <div>
+          {logMessages.map((msg, index) => (
+            <p key={index}>{msg}</p>
+          ))}
+        </div>
       </TerminalBox>
     </ScannerWrapper>
   );

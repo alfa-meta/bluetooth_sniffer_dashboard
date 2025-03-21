@@ -100,7 +100,7 @@ const Admin: React.FC = () => {
     } catch (err: any) {
       // Check error response
       if (err.response?.status === 401) {
-        alert("Session expired. Please log in again.");
+        console.log("Session expired. Please log in again.");
         localStorage.removeItem("token");
         navigate("/");
       } else {
@@ -133,7 +133,7 @@ const Admin: React.FC = () => {
       setUsers(users.filter((user) => user.uid !== uid));
     } catch (err: any) {
       if (err.response?.status === 401) {
-        alert("Session expired. Please log in again.");
+        console.log("Session expired. Please log in again.");
       } else {
         setError("Failed to delete user");
       }
