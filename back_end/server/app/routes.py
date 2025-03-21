@@ -182,35 +182,25 @@ def websocket_handle_connect():
 def process_monitor(user_email, process, stop_event, sid):
     """Background thread function to monitor process output"""
     try:
-        # Get file descriptors for the process's stdout
-        stdout_fd = process.stdout.fileno()
-        
-        # Set up polling object
-        poller = select.poll()
-        poller.register(stdout_fd, select.POLLIN)
-        
         # Buffer for incomplete lines
         buffer = ""
         
         while process.poll() is None and not stop_event.is_set():
-            # Use polling with timeout to avoid blocking
-            events = poller.poll(100)  # 100ms timeout
-            
-            if events:
-                # Data available to read
-                output = os.read(stdout_fd, 4096).decode('utf-8', errors='replace')
-                if output:
-                    # Split on newlines, keeping the remainder in the buffer
-                    buffer += output
-                    lines = buffer.split('\n')
-                    buffer = lines.pop()  # Keep the last (potentially incomplete) line
-                    
-                    for line in lines:
-                        if line:  # Only emit non-empty lines
-                            socketio.emit("scan_update", {"message": line.strip()}, room=sid)
-            
-            # Small sleep to prevent CPU hogging
-            socketio.sleep(0.01)
+            # Read from stdout without blocking
+            output = process.stdout.read(4096)
+            if output:
+                # Decode and handle the output
+                text = output.decode('utf-8', errors='replace')
+                buffer += text
+                lines = buffer.split('\n')
+                buffer = lines.pop()  # Keep the last (potentially incomplete) line
+                
+                for line in lines:
+                    if line:  # Only emit non-empty lines
+                        socketio.emit("scan_update", {"message": line.strip()}, room=sid)
+            else:
+                # Small sleep to prevent CPU hogging when no output
+                socketio.sleep(0.1)
         
         # Process any remaining data in the buffer
         if buffer:
@@ -244,7 +234,7 @@ def process_monitor(user_email, process, stop_event, sid):
             del process_threads[user_email]
             
         stop_event.set()  # Make sure the event is set
-
+        
 @socketio.on("websocket_start_scan")
 def websocket_start_scan():
     try:
