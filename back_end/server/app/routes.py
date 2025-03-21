@@ -239,6 +239,7 @@ def process_monitor(user_email, process, stop_event, sid):
         socketio.emit("scan_update", {"message": f"Error monitoring process: {str(e)}"}, room=sid)
     finally:
         # Clean up
+        socketio.emit("scan_stop", {"message": f"Process completed with return code {return_code}"}, room=sid)
         if user_email in processes:
             # Only delete if it's still the same process
             if processes[user_email] == process:

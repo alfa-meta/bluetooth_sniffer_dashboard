@@ -222,6 +222,7 @@ const Scanner: React.FC = () => {
     newSocket.on("disconnect", () => {
       console.log("WebSocket Disconnected!");
       setConnected(false);
+      setScanning(false);
       setLogMessages((prev) => [...prev, "WebSocket Disconnected!"]);
     });
 
@@ -243,6 +244,10 @@ const Scanner: React.FC = () => {
         return newMessages;
       });
       setScanning(true);
+    });
+
+    newSocket.on("scan_stop", (data: ScanResponse) => {
+      setScanning(false);
     });
 
     newSocket.on("scan_error", (error) => {
