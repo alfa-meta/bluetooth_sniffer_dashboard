@@ -26,16 +26,33 @@ const MainContent = styled.div`
   display: flex;
   flex-direction: column;
   height: 100vh;
+  overflow: hidden; /* Ensure no scrolling at this level */
 `;
 
 const ContentWrapper = styled.div`
   flex-grow: 1;
-  overflow: auto;
+  overflow: hidden; /* Changed from auto to hidden to prevent scrolling */
   display: flex;
   justify-content: center;
   align-items: center;
   width: 100%;
   height: 100%;
+`;
+
+// Add this new component for content that needs to be visible but not scrollable
+const ContentContainer = styled.div`
+  width: 100%;
+  height: 100%;
+  position: relative; /* Create positioning context for children */
+  
+  /* This creates a non-scrollable container that shows content within the visible area only */
+  & > * {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
 `;
 
 const Dashboard: React.FC = () => {
@@ -59,17 +76,19 @@ const Dashboard: React.FC = () => {
       <MainContent style={{ marginLeft: isSidebarHidden ? "5px" : "5px" }}>
         {/* <Titlebar title={title} /> */}
         <ContentWrapper>
-          {title === "Scanner" ? (
-            <Scanner />
-          ) : title === "Devices" ? (
-            <Devices />
-          ) : title === "Settings" ? (
-            <Settings />
-          ) : title === "Admin" ? (
-            <Admin />
-          ) : (
-            <p>Dashboard</p>
-          )}
+          <ContentContainer>
+            {title === "Scanner" ? (
+              <Scanner />
+            ) : title === "Devices" ? (
+              <Devices />
+            ) : title === "Settings" ? (
+              <Settings />
+            ) : title === "Admin" ? (
+              <Admin />
+            ) : (
+              <p>Dashboard</p>
+            )}
+          </ContentContainer>
         </ContentWrapper>
       </MainContent>
     </DashboardWrapper>

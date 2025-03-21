@@ -60,8 +60,9 @@ const Status = styled.p<StatusProps>`
 
 const TerminalBox = styled.div`
   width: 80%;
+  height: 100%;
   max-width: 800px;
-  height: 650px;
+  max-height: 750px;
   margin-top: 20px;
   padding: 10px;
   background: black;
