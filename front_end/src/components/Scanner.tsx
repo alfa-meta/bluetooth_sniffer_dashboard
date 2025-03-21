@@ -100,14 +100,37 @@ interface ScanResponse {
   pid?: number;
 }
 
+// Constants for localStorage keys
+const LOG_MESSAGES_STORAGE_KEY = 'scanner_log_messages';
+const SCANNING_STATUS_STORAGE_KEY = 'scanner_scanning_status';
+
 const Scanner: React.FC = () => {
-  const [scanning, setScanning] = useState(false);
-  const [logMessages, setLogMessages] = useState<string[]>([]);
+  // Initialize state with values from localStorage if they exist
+  const [scanning, setScanning] = useState<boolean>(() => {
+    const savedScanningStatus = localStorage.getItem(SCANNING_STATUS_STORAGE_KEY);
+    return savedScanningStatus ? JSON.parse(savedScanningStatus) : false;
+  });
+  
+  const [logMessages, setLogMessages] = useState<string[]>(() => {
+    const savedLogMessages = localStorage.getItem(LOG_MESSAGES_STORAGE_KEY);
+    return savedLogMessages ? JSON.parse(savedLogMessages) : [];
+  });
+  
   const [socket, setSocket] = useState<Socket | null>(null);
   const [connected, setConnected] = useState(false);
   const navigate = useNavigate();
   const terminalRef = useRef<HTMLDivElement>(null);
   const observerRef = useRef<MutationObserver | null>(null);
+
+  // Save logMessages to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem(LOG_MESSAGES_STORAGE_KEY, JSON.stringify(logMessages));
+  }, [logMessages]);
+
+  // Save scanning status to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem(SCANNING_STATUS_STORAGE_KEY, JSON.stringify(scanning));
+  }, [scanning]);
 
   // Set up mutation observer for DOM changes
   useEffect(() => {
@@ -193,16 +216,19 @@ const Scanner: React.FC = () => {
     newSocket.on("connect", () => {
       console.log("WebSocket Connected!");
       setConnected(true);
+      setLogMessages((prev) => [...prev, "WebSocket Connected!"]);
     });
 
     newSocket.on("disconnect", () => {
       console.log("WebSocket Disconnected!");
       setConnected(false);
+      setLogMessages((prev) => [...prev, "WebSocket Disconnected!"]);
     });
 
     newSocket.on("connect_error", (error) => {
       console.error("WebSocket Connection Error:", error);
       setConnected(false);
+      setLogMessages((prev) => [...prev, `Connection Error: ${error.message}`]);
     });
 
     newSocket.on("scan_update", (data: ScanResponse) => {
@@ -262,16 +288,39 @@ const Scanner: React.FC = () => {
     setScanning(!scanning);
   };
 
+  // Add function to clear the logs if needed
+  const clearLogs = () => {
+    setLogMessages([]);
+  };
+
   return (
     <ScannerWrapper>
       <h2>Scanner</h2>
-      <ConnectButton onClick={connected ? disconnectSocket : connectSocket} connected={connected}>
-        {connected ? "Disconnect" : "Connect"}
-      </ConnectButton>
+      <div style={{ display: "flex", gap: "10px" }}>
+        <ConnectButton onClick={connected ? disconnectSocket : connectSocket} connected={connected}>
+          {connected ? "Disconnect" : "Connect"}
+        </ConnectButton>
+        
+        <ScanButton onClick={toggleScanning} disabled={!connected}>
+          {scanning ? "Stop Scanning" : "Start Scanning"}
+        </ScanButton>
+        
+        <button 
+          onClick={clearLogs}
+          style={{
+            padding: "15px 30px",
+            fontSize: "16px",
+            background: "red",
+            color: "white",
+            border: "none",
+            borderRadius: "5px",
+            cursor: "pointer"
+          }}
+        >
+          Clear Logs
+        </button>
+      </div>
       <Status connected={connected}>{connected ? "Connected" : "Disconnected"}</Status>
-      <ScanButton onClick={toggleScanning} disabled={!connected}>
-        {scanning ? "Stop Scanning" : "Start Scanning"}
-      </ScanButton>
       <TerminalBox ref={terminalRef}>
         <div>
           {logMessages.map((msg, index) => (
