@@ -1,6 +1,3 @@
-import select
-print("select.poll available:", hasattr(select, "poll"))
-
 import eventlet
 eventlet.monkey_patch()
 

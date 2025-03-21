@@ -1,7 +1,7 @@
 from interfaces import *
 from outputs import *
 from sniffer import Sniffer
-from db import fetch_all_users, fetch_all_devices
+from db import fetch_all_users, fetch_all_devices, fetch_all_logs
 import math
 
 
@@ -28,7 +28,8 @@ if __name__ == "__main__":
     sniffer_mode = "bluetoothctl"
     user_data = fetch_all_users()
     device_data = fetch_all_devices()
-    interfaces = get_tshark_interfaces()
+    logs_data = fetch_all_logs()
+    interfaces = [] ##get_tshark_interfaces()
     interface_found = check_for_nrf_sniffer(interfaces=interfaces, sniffer_mode=sniffer_mode)
     todays_date = str(get_current_date())
     sniffer = Sniffer(100, user_data=user_data, device_data=device_data, sniffer_mode=sniffer_mode)

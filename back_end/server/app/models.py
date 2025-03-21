@@ -20,8 +20,7 @@ class Device(db.Model):
 class Logs(db.Model):
     __tablename__ = 'logs'
     mac_address = db.Column(db.String, primary_key=True)
-    last_seen = db.Column(db.Integer, nullable=False)
     first_seen = db.Column(db.Integer, nullable=False)
-    count = db.Column(db.Integer, nullabel=False)
+    last_seen = db.Column(db.Integer, nullable=False)
+    count = db.Column(db.Integer, nullable=False)
     scan_number = db.Column(db.Integer, nullable=False)
-    

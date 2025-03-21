@@ -220,7 +220,33 @@ def query_user_data_by_email(email: str):
     conn.close()
     return user_dict
 
+###### Logs ############
 
+def fetch_all_logs():
+    conn = connect_db()
+    cursor = conn.cursor()
+
+    print("Fetching all Logs from logs")
+    
+    cursor.execute("SELECT * FROM logs")
+    logs = cursor.fetchall()
+    logs_list = []
+
+    if logs_list:
+        for log in logs_list:
+            print(log)
+            logs_list.append({
+                "mac_address": log[0],
+                "first_seen": log[1], 
+                "last_seen": log[2],
+                "count": log[3],
+                "scan_number": log[4]
+            })
+
+    conn.close()
+    return logs_list
+
+###### Logs ############
 
 def display_database():
     conn = connect_db()
@@ -244,6 +270,8 @@ def display_database():
     else:
         print("No devices found.")
     conn.close()
+
+
 
 ## Example usage
 
