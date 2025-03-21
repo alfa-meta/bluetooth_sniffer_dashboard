@@ -16,3 +16,12 @@ class Device(db.Model):
     device_name = db.Column(db.String, nullable=False)
     last_seen = db.Column(db.Integer, nullable=False)
     email = db.Column(db.String, db.ForeignKey('USER.email'), nullable=False)
+
+class Logs(db.Model):
+    __tablename__ = 'logs'
+    mac_address = db.Column(db.String, primary_key=True)
+    last_seen = db.Column(db.Integer, nullable=False)
+    first_seen = db.Column(db.Integer, nullable=False)
+    count = db.Column(db.Integer, nullabel=False)
+    scan_number = db.Column(db.Integer, nullable=False)
+    

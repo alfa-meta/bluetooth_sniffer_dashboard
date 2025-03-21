@@ -19,7 +19,7 @@ def create_app():
     jwt.init_app(app)
 
     with app.app_context():
-        from .models import User, Device  # Ensure all models are imported
+        from .models import User, Device, Logs  # Ensure all models are imported
         db.create_all()
 
     from .routes import main_bp, websocket_handle_connect, websocket_start_scan, websocket_stop_scan, websocket_handle_disconnect
