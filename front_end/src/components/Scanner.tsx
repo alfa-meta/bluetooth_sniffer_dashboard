@@ -61,7 +61,7 @@ const Status = styled.p<StatusProps>`
 const TerminalBox = styled.div`
   width: 80%;
   height: 100%;
-  max-width: 800px;
+  max-width: 1000px;
   max-height: 750px;
   margin-top: 20px;
   padding: 10px;
@@ -94,18 +94,15 @@ const TerminalBox = styled.div`
   }
 `;
 
-
 interface ScanResponse {
   message: string;
   pid?: number;
 }
 
-// Constants for localStorage keys
-const LOG_MESSAGES_STORAGE_KEY = 'scanner_log_messages';
-const SCANNING_STATUS_STORAGE_KEY = 'scanner_scanning_status';
+const LOG_MESSAGES_STORAGE_KEY = "scanner_log_messages";
+const SCANNING_STATUS_STORAGE_KEY = "scanner_scanning_status";
 
 const Scanner: React.FC = () => {
-  // Initialize state with values from localStorage if they exist
   const [scanning, setScanning] = useState<boolean>(() => {
     const savedScanningStatus = localStorage.getItem(SCANNING_STATUS_STORAGE_KEY);
     return savedScanningStatus ? JSON.parse(savedScanningStatus) : false;
@@ -122,7 +119,13 @@ const Scanner: React.FC = () => {
   const terminalRef = useRef<HTMLDivElement>(null);
   const observerRef = useRef<MutationObserver | null>(null);
 
-  // Save logMessages to localStorage whenever it changes
+  // Helper function to add a timestamp to each log message
+  const addLogMessage = (msg: string) => {
+    const timestamp = new Date().toLocaleString();
+    setLogMessages((prev) => [...prev, `${timestamp} - ${msg}`]);
+  };
+
+  // Save logMessages to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem(LOG_MESSAGES_STORAGE_KEY, JSON.stringify(logMessages));
   }, [logMessages]);
@@ -132,16 +135,14 @@ const Scanner: React.FC = () => {
     localStorage.setItem(SCANNING_STATUS_STORAGE_KEY, JSON.stringify(scanning));
   }, [scanning]);
 
-  // Set up mutation observer for DOM changes
+  // Set up mutation observer for DOM changes (auto-scroll)
   useEffect(() => {
     if (terminalRef.current) {
-      // Force scroll to bottom on any content change
       observerRef.current = new MutationObserver(() => {
         if (terminalRef.current) {
           terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
         }
       });
-      
       observerRef.current.observe(terminalRef.current, {
         childList: true,
         subtree: true
@@ -155,7 +156,7 @@ const Scanner: React.FC = () => {
     };
   }, []);
 
-  // Alternative approach using direct manipulation when log messages change
+  // Ensure terminal scrolls to the bottom when log messages change
   useEffect(() => {
     if (terminalRef.current) {
       terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
@@ -167,7 +168,7 @@ const Scanner: React.FC = () => {
       const token = localStorage.getItem("token");
       if (!token) {
         localStorage.removeItem("token");
-        navigate("/"); // Redirect if token is missing
+        navigate("/");
         return;
       }
 
@@ -184,7 +185,7 @@ const Scanner: React.FC = () => {
         if (!response.ok) {
           console.error("Error fetching user data:", data.message);
           localStorage.removeItem("token");
-          navigate("/"); // Redirect on error
+          navigate("/");
         }
       } catch (error) {
         console.error("Error:", error);
@@ -212,37 +213,27 @@ const Scanner: React.FC = () => {
       query: { token: storedToken },
     });
     
-
     newSocket.on("connect", () => {
       console.log("WebSocket Connected!");
       setConnected(true);
-      setLogMessages((prev) => [...prev, "WebSocket Connected!"]);
+      addLogMessage("WebSocket Connected!");
     });
 
     newSocket.on("disconnect", () => {
       console.log("WebSocket Disconnected!");
       setConnected(false);
       setScanning(false);
-      setLogMessages((prev) => [...prev, "WebSocket Disconnected!"]);
+      addLogMessage("WebSocket Disconnected!");
     });
 
     newSocket.on("connect_error", (error) => {
       console.error("WebSocket Connection Error:", error);
       setConnected(false);
-      setLogMessages((prev) => [...prev, `Connection Error: ${error.message}`]);
+      addLogMessage(`Connection Error: ${error.message}`);
     });
 
     newSocket.on("scan_update", (data: ScanResponse) => {
-      setLogMessages((prev) => {
-        const newMessages = [...prev, data.message];
-        // Force scroll after state update completes
-        requestAnimationFrame(() => {
-          if (terminalRef.current) {
-            terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
-          }
-        });
-        return newMessages;
-      });
+      addLogMessage(data.message);
       setScanning(true);
     });
 
@@ -251,16 +242,7 @@ const Scanner: React.FC = () => {
     });
 
     newSocket.on("scan_error", (error) => {
-      setLogMessages((prev) => {
-        const newMessages = [...prev, `Error: ${error.message}`];
-        // Force scroll after state update completes
-        requestAnimationFrame(() => {
-          if (terminalRef.current) {
-            terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
-          }
-        });
-        return newMessages;
-      });
+      addLogMessage(`Error: ${error.message}`);
       setScanning(false);
     });
 
@@ -269,14 +251,11 @@ const Scanner: React.FC = () => {
 
   const disconnectSocket = () => {
     if (socket) {
-      // Send a custom disconnect request to the server
       socket.emit("websocket_handle_disconnect", { reason: "User initiated disconnect" });
-      
-      // Then disconnect
       socket.disconnect();
       setSocket(null);
       setConnected(false);
-      setLogMessages((prev) => [...prev, "WebSocket Disconnected."]);
+      addLogMessage("WebSocket Disconnected.");
     }
   };
 
@@ -285,15 +264,14 @@ const Scanner: React.FC = () => {
 
     if (!scanning) {
       socket.emit("websocket_start_scan");
-      setLogMessages((prev) => [...prev, "Scanning started..."]);
+      addLogMessage("Scanning started...");
     } else {
       socket.emit("websocket_stop_scan");
-      setLogMessages((prev) => [...prev, "Scanning stopped."]);
+      addLogMessage("Scanning stopped.");
     }
     setScanning(!scanning);
   };
 
-  // Add function to clear the logs if needed
   const clearLogs = () => {
     setLogMessages([]);
   };

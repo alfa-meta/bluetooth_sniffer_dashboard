@@ -1,7 +1,7 @@
 import os
 import sqlite3
 from datetime import datetime
-
+import time
 
 """
     WORK IN PROGRESS. CURRENTLY NOT IN USE
@@ -222,29 +222,42 @@ def query_user_data_by_email(email: str):
 
 ###### Logs ############
 
-def fetch_all_logs():
+def update_logs(device_list: list):
     conn = connect_db()
     cursor = conn.cursor()
 
-    print("Fetching all Logs from logs")
+    # Get the highest current scan_number; default to 0 if none exists.
+    cursor.execute("SELECT MAX(scan_number) FROM logs")
+    result = cursor.fetchone()[0]
+    latest_scan = result if result is not None else 0
+    new_scan_number = latest_scan + 1
+
+    current_time = int(time.time())
+    for device in device_list:
+        mac = device["mac_address"]
+        # Check if a log entry exists for this MAC address.
+        cursor.execute("SELECT count FROM logs WHERE mac_address = ?", (mac,))
+        row = cursor.fetchone()
+        if row:
+            # Update existing record.
+            new_count = row[0] + 1
+            cursor.execute("""
+                UPDATE logs 
+                SET last_seen = ?, count = ?, scan_number = ? 
+                WHERE mac_address = ?
+            """, (current_time, new_count, new_scan_number, mac))
+        else:
+            # Insert a new log entry.
+            cursor.execute("""
+                INSERT INTO logs (mac_address, first_seen, last_seen, count, scan_number) 
+                VALUES (?, ?, ?, ?, ?)
+            """, (mac, current_time, current_time, 1, new_scan_number))
     
-    cursor.execute("SELECT * FROM logs")
-    logs = cursor.fetchall()
-    logs_list = []
+    print(f"Logs were updated at {datetime.now()}")
 
-    if logs_list:
-        for log in logs_list:
-            print(log)
-            logs_list.append({
-                "mac_address": log[0],
-                "first_seen": log[1], 
-                "last_seen": log[2],
-                "count": log[3],
-                "scan_number": log[4]
-            })
-
+    conn.commit()
     conn.close()
-    return logs_list
+
 
 ###### Logs ############
 

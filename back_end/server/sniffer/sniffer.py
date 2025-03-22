@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from email_sender import send_email, import_json_file
 import sys
 import os
+from db import update_logs
 
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
@@ -162,16 +163,26 @@ class Sniffer():
                     scanned_devices[mac_address.lower()] = device_name
                     print(mac_address)
 
+        formatted_devices_list = []
         # Compare extracted addresses with the known BLE devices in self.device_data
         for device in self.device_data:
             device_mac = device['mac_address'].lower()  # BLE device MAC address from the database
             device_name = device['device_name']        # BLE device name from the database
 
+            current_device = {
+                "mac_address": device_mac,
+                "device_name": device_name,
+                "timestamp": time.time()
+            }
+
+            formatted_devices_list.append(current_device)
+
             if device_mac in scanned_devices:
                 matched_devices.append({
                     "mac_address": device_mac,
                     "device_name": device_name,
-                    "scanned_device_name": scanned_devices[device_mac]
+                    "scanned_device_name": scanned_devices[device_mac],
+                    "timestamp": time.time()
                 })
 
         # Print and return matched devices
@@ -184,9 +195,10 @@ class Sniffer():
             send_email(f"Matched Addresses:\n{matched_devices}")
         else:
             print("No matched devices found.")
+        
+        update_logs(device_list=formatted_devices_list)
 
         return matched_devices
-
 
     def calculate_distance(self, rssi, tx_power):
         """
