@@ -66,7 +66,6 @@ def check_for_nrf_sniffer(interfaces: list, sniffer_mode: str):
     
     if interfaces:
         for interface in interfaces:
-            #print(f"{interface['index']}. {interface['name']} - {interface['description']}")
             if interface['name'] == 'COM5-4.4':
                 sniffer_boolean = True
     else:

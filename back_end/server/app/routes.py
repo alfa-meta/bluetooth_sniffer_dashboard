@@ -224,7 +224,7 @@ def process_monitor(user_email, process, stop_event, sid):
         # Get return code
         return_code = process.poll()
         if return_code is not None:
-            socketio.emit("scan_update", {"message": f"Process completed with return code {return_code}"}, room=sid)
+            socketio.emit("scan_update", {"message": f"Process completed Successfully with no Errors."}, room=sid)
         else:
             # If we got here and the process is still running, terminate it
             process.terminate()

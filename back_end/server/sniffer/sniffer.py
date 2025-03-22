@@ -22,30 +22,6 @@ class Sniffer():
         print(f"{len(user_data)} users found in the Database")
         print(f"{len(device_data)} devices found in the Database")
 
-    def run_tshark(self, input_interface, output_json):
-        """
-            Run the tshark command and stream the output into a JSON file.
-            
-            :param input_interface: The input interface (e.g., 'COM5-4.4').
-            :param output_json: The name of the output JSON file (e.g., 'output.json').
-        """
-        # Construct the tshark command
-        command = [
-            "tshark",
-            "-i", input_interface,   # Input interface
-            "-T", "json",            # Output in JSON format
-            "-c", self.number_of_packets
-        ]
-        
-        try:
-            # Open the output file and run the tshark command, streaming output to the file
-            with open("outputs\\" + output_json + "\\" + output_json + ".json", "w") as output_file:
-                subprocess.run(command, stdout=output_file, check=True)
-        except subprocess.CalledProcessError as e:
-            print(f"Error running tshark: {e}")
-        except FileNotFoundError:
-            print("Tshark is not installed or not found in the PATH.")
-
     def run_bluetoothctl(self):
         """
             This function interacts with the bluetoothctl command to scan for nearby Bluetooth devices,
@@ -72,6 +48,7 @@ class Sniffer():
                 process.stdin.write(command)
                 process.stdin.flush()
             
+            print(f"Scanning for Bluetooth Devices for {self.scan_time} seconds.")
             # Allow time for scanning
             time.sleep(self.scan_time)
             
@@ -152,10 +129,6 @@ class Sniffer():
         return address_rssi_list
     
     def output_source_addresses(self, json_file_path: str):
-        if self.sniffer_mode == "tshark":
-            self.output_source_addresses_via_tshark(json_file_path)
-            return True
-        
         if self.sniffer_mode == "bluetoothctl":
             output = self.run_bluetoothctl()
             self.compare_bluetoothctl_output(output)
@@ -164,55 +137,6 @@ class Sniffer():
         print("Sniffer mode has not been recognised.")
 
         return None
-
-
-    def output_source_addresses_via_tshark(self, json_file_path: str):
-        """
-            Processes source MAC addresses from JSON file and matches them with BLE device MAC addresses.
-
-            :param json_file_path: File path to extracted tshark packets.
-        """
-        # Extract source addresses from the JSON file
-        addresses = self.extract_addresses_and_rssi(json_file_path)
-        
-        # Use self.device_data directly
-        ble_devices = self.device_data
-
-        if not ble_devices:
-            print("No BLE devices loaded.")
-            return
-
-        print("BLE Devices:")
-        print([{device['mac_address']: device['device_name']} for device in ble_devices])
-
-        print("\nSource Addresses:")
-        matched_addresses = []
-
-        # Convert BLE device MAC addresses to lowercase for case-insensitive matching
-        ble_device_map = {device['mac_address'].lower(): device['device_name'] for device in ble_devices}
-
-        for address, count, average_rssi in addresses:
-            # Compare lowercase source address with BLE MAC addresses
-            if address.lower() in ble_device_map:
-                device_name = ble_device_map[address.lower()]
-                matched_addresses.append((address, count, average_rssi, device_name))
-
-            print(f"{address}: Count={count}, Average RSSI={average_rssi:.2f} dBm")
-
-        # Display matches
-        if matched_addresses:
-            print("\nMatched Addresses:")
-            for address, count, average_rssi, device_name in matched_addresses:
-                print(f"{address} ({device_name}): Count={count}, Average RSSI={average_rssi:.2f} dBm")
-            
-            # Format the matched addresses for the email
-            email_content = "\n".join(
-                f"{address} ({device_name}): Count={count}, Average RSSI={average_rssi:.2f} dBm"
-                for address, count, average_rssi, device_name in matched_addresses
-            )
-            send_email(f"Matched Addresses:\n{email_content}")
-        else:
-            print("\nNo BLE devices matched any source addresses.")
 
     def compare_bluetoothctl_output(self, bluetoothctl_output):
         """
