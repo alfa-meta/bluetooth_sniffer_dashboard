@@ -147,51 +147,46 @@ class Sniffer():
             :return: A list of matched devices, including their MAC address, device name, and signal strength (if available).
         """
         matched_devices = []
-
-        # Extract MAC addresses and optional RSSI values from bluetoothctl output
-        # Assuming bluetoothctl output has lines like "Device MAC_ADDRESS [Device Name]"
         lines = bluetoothctl_output.splitlines()
         scanned_devices = {}
-        
+
+        # Parse bluetoothctl output
         for line in lines:
             if "Device" in line:
-                # Extract MAC address and device name from the line
                 parts = line.split()
-                if len(parts) >= 2:
-                    mac_address = parts[3].strip()  # Extract MAC address
-                    device_name = " ".join(parts[4:]).strip() if len(parts) > 2 else "Unknown"  # Extract device name
+                if len(parts) >= 5:
+                    mac_address = parts[3].strip()
+                    device_name = " ".join(parts[4:]).strip()
                     scanned_devices[mac_address.lower()] = device_name
                     print(mac_address)
 
+        # Build devices list for logs from scanned_devices
         formatted_devices_list = []
-        # Compare extracted addresses with the known BLE devices in self.device_data
-        for device in self.device_data:
-            device_mac = device['mac_address'].lower()  # BLE device MAC address from the database
-            device_name = device['device_name']        # BLE device name from the database
-
+        for mac, name in scanned_devices.items():
             current_device = {
-                "mac_address": device_mac,
-                "device_name": device_name,
+                "mac_address": mac,
+                "device_name": name,
                 "timestamp": time.time()
             }
-
             formatted_devices_list.append(current_device)
+            
+        # # Optionally check if this scanned device is in known devices
+        # for device in self.device_data:
+        #     if device['mac_address'].lower() == mac:
+        #         matched_devices.append({
+        #             "mac_address": mac,
+        #             "device_name": device['device_name'],
+        #             "scanned_device_name": name,
+        #             "timestamp": time.time()
+        #         })
 
-            if device_mac in scanned_devices:
-                matched_devices.append({
-                    "mac_address": device_mac,
-                    "device_name": device_name,
-                    "scanned_device_name": scanned_devices[device_mac],
-                    "timestamp": time.time()
-                })
-
-        # Print and return matched devices
+        # Log and optionally email matched devices
         if matched_devices:
             print("Matched devices found:")
             for match in matched_devices:
-                print(f"MAC Address: {match['mac_address']}, "
-                    f"Device Name: {match['device_name']}, "
-                    f"Scanned Device Name: {match['scanned_device_name']}")
+                print(f"MAC: {match['mac_address']}, "
+                    f"Known Name: {match['device_name']}, "
+                    f"Scanned Name: {match['scanned_device_name']}")
             send_email(f"Matched Addresses:\n{matched_devices}")
         else:
             print("No matched devices found.")

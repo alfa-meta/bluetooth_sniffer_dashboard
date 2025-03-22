@@ -300,7 +300,7 @@ const Scanner: React.FC = () => {
             cursor: "pointer"
           }}
         >
-          Clear Logs
+          Clear Terminal
         </button>
       </div>
       <Status connected={connected}>{connected ? "Connected" : "Disconnected"}</Status>

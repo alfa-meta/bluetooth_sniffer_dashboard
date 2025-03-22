@@ -7,7 +7,7 @@ import subprocess
 import select
 import os
 from config import Config
-from .models import Device, User, db
+from .models import Device, User, Logs, db
 from . import socketio
 from .functions import set_websocket_connected, get_websocket_connected
 import time
@@ -170,6 +170,27 @@ def add_device():
     except Exception as e:
         print("Error:", e)
         return jsonify({"message": "An error occurred, please try again later"}), 500
+
+@main_bp.route("/logs", methods=["GET"])
+@jwt_required()
+def get_all_logs():
+    try:
+        logs = Logs.query.all()
+        logs_list = [
+            {
+                "mac_address": log.mac_address,
+                "first_seen": log.first_seen,
+                "last_seen": log.last_seen,
+                "count": log.count,
+                "scan_number": log.scan_number,
+            }
+            for log in logs
+        ]
+        return jsonify(logs_list), 200
+    except Exception as e:
+        print(f"Error in get_all_logs: {e}")
+        return jsonify({"message": "An error occurred, please try again later"}), 500
+
 
 @socketio.on("websocket_handle_connect")
 def websocket_handle_connect():

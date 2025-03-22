@@ -4,6 +4,7 @@ import "../styles/Dashboard.css";
 import Sidebar from "../components/Sidebar";
 // import Titlebar from "../components/Titlebar";
 import Scanner from "../components/Scanner";
+import Logs from "../components/Logs";
 import Admin from "../components/Admin"; // Corrected import
 import Devices from "../components/Devices";
 import Settings from "../components/Settings";
@@ -79,6 +80,8 @@ const Dashboard: React.FC = () => {
           <ContentContainer>
             {title === "Scanner" ? (
               <Scanner />
+            ) : title === "Logs" ? (
+              <Logs />
             ) : title === "Devices" ? (
               <Devices />
             ) : title === "Settings" ? (

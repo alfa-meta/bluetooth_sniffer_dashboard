@@ -84,7 +84,7 @@ const LogoutButton = styled.button`
   }
 `;
 
-const pages = ["Scanner", "Admin", "Devices", "Settings"];
+const pages = ["Scanner", "Logs", "Admin", "Devices", "Settings"];
 
 const Sidebar: React.FC<{
   setTitle: (title: string) => void;
