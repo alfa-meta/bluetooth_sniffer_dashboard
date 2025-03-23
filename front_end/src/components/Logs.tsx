@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import axios from "axios";
@@ -92,11 +92,13 @@ const Td = styled.td`
   border-right: 2px solid var(--border-color);
 `;
 
+
 const Logs: React.FC = () => {
   const [logs, setLogs] = useState<Log[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [sortConfig, setSortConfig] = useState<{ key: keyof Log; direction: "asc" | "desc" } | null>(null);
   const navigate = useNavigate();
 
   const fetchLogs = useCallback(async () => {
@@ -109,10 +111,9 @@ const Logs: React.FC = () => {
     }
     setIsRefreshing(true);
     try {
-      const response = await axios.get<Log[]>(
-        "http://127.0.0.1:5000/logs",
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await axios.get<Log[]>("http://127.0.0.1:5000/logs", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setLogs(response.data);
     } catch (err) {
       console.error("Failed to fetch logs", err);
@@ -128,12 +129,43 @@ const Logs: React.FC = () => {
     fetchLogs();
   }, [fetchLogs]);
 
-  const filteredLogs = logs.filter(
-    (log) =>
-      log.mac_address.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      String(log.first_seen).toLowerCase().includes(searchTerm.toLowerCase()) ||
-      String(log.last_seen).toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredLogs = logs.filter((log) =>
+    log.mac_address.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    String(log.first_seen).toLowerCase().includes(searchTerm.toLowerCase()) ||
+    String(log.last_seen).toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleSort = (column: keyof Log) => {
+    let direction: "asc" | "desc" = "asc";
+    if (sortConfig && sortConfig.key === column && sortConfig.direction === "asc") {
+      direction = "desc";
+    }
+    setSortConfig({ key: column, direction });
+  };
+
+  const sortedLogs = useMemo(() => {
+    const sortableLogs = [...filteredLogs];
+    if (sortConfig !== null) {
+      sortableLogs.sort((a, b) => {
+        let aValue: any = a[sortConfig.key];
+        let bValue: any = b[sortConfig.key];
+
+        // Parse timestamps as numbers for proper sorting
+        if (sortConfig.key === "first_seen" || sortConfig.key === "last_seen") {
+          aValue = parseInt(aValue);
+          bValue = parseInt(bValue);
+        }
+        if (typeof aValue === "number" && typeof bValue === "number") {
+          return sortConfig.direction === "asc" ? aValue - bValue : bValue - aValue;
+        } else {
+          return sortConfig.direction === "asc"
+            ? String(aValue).localeCompare(String(bValue))
+            : String(bValue).localeCompare(String(aValue));
+        }
+      });
+    }
+    return sortableLogs;
+  }, [filteredLogs, sortConfig]);
 
   return (
     <LogsWrapper>
@@ -158,23 +190,19 @@ const Logs: React.FC = () => {
         <Table>
           <thead>
             <tr>
-              <Th>MAC Address</Th>
-              <Th>First Seen</Th>
-              <Th>Last Seen</Th>
-              <Th>Count</Th>
-              <Th>Scan Number</Th>
+              <Th onClick={() => handleSort("mac_address")}>MAC Address</Th>
+              <Th onClick={() => handleSort("first_seen")}>First Seen</Th>
+              <Th onClick={() => handleSort("last_seen")}>Last Seen</Th>
+              <Th onClick={() => handleSort("count")}>Count</Th>
+              <Th onClick={() => handleSort("scan_number")}>Scan Number</Th>
             </tr>
           </thead>
           <tbody>
-            {filteredLogs.map((log, index) => (
+            {sortedLogs.map((log, index) => (
               <tr key={index}>
                 <Td>{log.mac_address}</Td>
-                <Td>
-                  {new Date(parseInt(log.first_seen) * 1000).toLocaleString()}
-                </Td>
-                <Td>
-                  {new Date(parseInt(log.last_seen) * 1000).toLocaleString()}
-                </Td>
+                <Td>{new Date(parseInt(log.first_seen) * 1000).toLocaleString()}</Td>
+                <Td>{new Date(parseInt(log.last_seen) * 1000).toLocaleString()}</Td>
                 <Td>{log.count}</Td>
                 <Td>{log.scan_number}</Td>
               </tr>
