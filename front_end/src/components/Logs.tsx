@@ -138,8 +138,14 @@ const Logs: React.FC = () => {
 
   const filteredLogs = logs.filter((log) =>
     log.mac_address.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    String(log.first_seen).toLowerCase().includes(searchTerm.toLowerCase()) ||
-    String(log.last_seen).toLowerCase().includes(searchTerm.toLowerCase()) ||
+    new Date(parseInt(log.first_seen) * 1000)
+      .toLocaleString()
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase()) ||
+    new Date(parseInt(log.last_seen) * 1000)
+      .toLocaleString()
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase()) ||
     String(log.count).toLowerCase().includes(searchTerm.toLowerCase()) ||
     String(log.scan_number).toLowerCase().includes(searchTerm.toLowerCase())
   );
