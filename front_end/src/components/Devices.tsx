@@ -114,6 +114,12 @@ const Devices: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  // For mac_address, we add a mode property ("alpha" or "numeric")
+  const [sortConfig, setSortConfig] = useState<{
+    key: string | null;
+    direction: "asc" | "desc";
+    mode?: "alpha" | "numeric";
+  }>({ key: null, direction: "asc" });
   const navigate = useNavigate();
 
   const fetchDevices = useCallback(async () => {
@@ -125,10 +131,9 @@ const Devices: React.FC = () => {
       return;
     }
     try {
-      const response = await axios.get<Device[]>(
-        "http://127.0.0.1:5000/devices",
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await axios.get<Device[]>("http://127.0.0.1:5000/devices", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setDevices(response.data);
     } catch (err) {
       console.error("Failed to fetch device data", err);
@@ -142,7 +147,7 @@ const Devices: React.FC = () => {
   }, [fetchDevices]);
 
   const handleDelete = async (mac_address: string, device_name: string) => {
-    const confirmDelete = await window.confirm(`Are you sure you want to delete ${device_name}?`);
+    const confirmDelete = window.confirm(`Are you sure you want to delete ${device_name}?`);
     if (!confirmDelete) return;
 
     const token = localStorage.getItem("token");
@@ -172,12 +177,66 @@ const Devices: React.FC = () => {
     }
   };
 
+  const handleSort = (key: string) => {
+    if (key === "mac_address") {
+      if (sortConfig.key !== "mac_address") {
+        // Start with alphabetical ascending
+        setSortConfig({ key: "mac_address", direction: "asc", mode: "alpha" });
+      } else {
+        // Cycle through: alpha asc -> alpha desc -> numeric asc -> numeric desc -> back to alpha asc
+        if (sortConfig.mode === "alpha" && sortConfig.direction === "asc") {
+          setSortConfig({ key: "mac_address", direction: "desc", mode: "alpha" });
+        } else if (sortConfig.mode === "alpha" && sortConfig.direction === "desc") {
+          setSortConfig({ key: "mac_address", direction: "asc", mode: "numeric" });
+        } else if (sortConfig.mode === "numeric" && sortConfig.direction === "asc") {
+          setSortConfig({ key: "mac_address", direction: "desc", mode: "numeric" });
+        } else if (sortConfig.mode === "numeric" && sortConfig.direction === "desc") {
+          setSortConfig({ key: "mac_address", direction: "asc", mode: "alpha" });
+        }
+      }
+    } else {
+      if (sortConfig.key === key) {
+        const newDirection = sortConfig.direction === "asc" ? "desc" : "asc";
+        setSortConfig({ key, direction: newDirection });
+      } else {
+        setSortConfig({ key, direction: "asc" });
+      }
+    }
+  };
+
   const filteredDevices = devices.filter(
     (device) =>
       device.device_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       device.mac_address.toLowerCase().includes(searchTerm.toLowerCase()) ||
       device.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const sortedDevices = [...filteredDevices];
+  if (sortConfig.key) {
+    sortedDevices.sort((a, b) => {
+      if (sortConfig.key === "mac_address") {
+        if (sortConfig.mode === "alpha") {
+          const res = a.mac_address.localeCompare(b.mac_address);
+          return sortConfig.direction === "asc" ? res : -res;
+        } else {
+          // Numeric: remove colons and parse as hex numbers
+          const numA = parseInt(a.mac_address.replace(/:/g, ""), 16);
+          const numB = parseInt(b.mac_address.replace(/:/g, ""), 16);
+          const res = numA - numB;
+          return sortConfig.direction === "asc" ? res : -res;
+        }
+      }
+      if (sortConfig.key === "device_name" || sortConfig.key === "email") {
+        const res = a[sortConfig.key].localeCompare(b[sortConfig.key]);
+        return sortConfig.direction === "asc" ? res : -res;
+      }
+      if (sortConfig.key === "last_seen") {
+        const res = parseInt(a.last_seen) - parseInt(b.last_seen);
+        return sortConfig.direction === "asc" ? res : -res;
+      }
+      return 0;
+    });
+  }
 
   return isAdding ? (
     <AddNewDevice setIsAdding={setIsAdding} fetchDevices={fetchDevices} />
@@ -202,23 +261,30 @@ const Devices: React.FC = () => {
         <Table>
           <thead>
             <tr>
-              <Th>MAC Address</Th>
-              <Th>Device Name</Th>
-              <Th>Last Seen</Th>
-              <Th>User Email</Th>
+              <Th onClick={() => handleSort("mac_address")}>
+                MAC Address
+              </Th>
+              <Th onClick={() => handleSort("device_name")}>Device Name</Th>
+              <Th onClick={() => handleSort("last_seen")}>Last Seen</Th>
+              <Th onClick={() => handleSort("email")}>User Email</Th>
               <Th>Actions</Th>
             </tr>
           </thead>
           <tbody>
-            {filteredDevices.map((device) => (
+            {sortedDevices.map((device) => (
               <tr key={device.mac_address}>
                 <Td>{device.mac_address}</Td>
                 <Td>{device.device_name}</Td>
-                <Td>{new Date(parseInt(device.last_seen) * 1000).toLocaleString()}</Td>                <Td>{device.email}</Td>
+                <Td>
+                  {new Date(parseInt(device.last_seen) * 1000).toLocaleString()}
+                </Td>
+                <Td>{device.email}</Td>
                 <Td>
                   <DeleteButton
                     disabled={isDeleting}
-                    onClick={() => handleDelete(device.mac_address, device.device_name)}
+                    onClick={() =>
+                      handleDelete(device.mac_address, device.device_name)
+                    }
                   >
                     {isDeleting ? "Deleting..." : "Delete"}
                   </DeleteButton>
