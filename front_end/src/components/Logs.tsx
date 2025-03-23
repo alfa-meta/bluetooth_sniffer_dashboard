@@ -12,6 +12,12 @@ interface Log {
   scan_number: number;
 }
 
+const PageSpan = styled.span`
+  padding: 20px;
+  flex: 1;
+  text-align: center;
+`;
+
 const LogsWrapper = styled.div`
   width: 100%;
   height: 100%;
@@ -64,7 +70,7 @@ const Button = styled.button`
   transition: background 0.3s;
 
   &:hover {
-    background: var(--red);
+    background: var(--highlight);
   }
 `;
 
@@ -92,13 +98,14 @@ const Td = styled.td`
   border-right: 2px solid var(--border-color);
 `;
 
-
 const Logs: React.FC = () => {
   const [logs, setLogs] = useState<Log[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [sortConfig, setSortConfig] = useState<{ key: keyof Log; direction: "asc" | "desc" } | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 15;
   const navigate = useNavigate();
 
   const fetchLogs = useCallback(async () => {
@@ -132,7 +139,9 @@ const Logs: React.FC = () => {
   const filteredLogs = logs.filter((log) =>
     log.mac_address.toLowerCase().includes(searchTerm.toLowerCase()) ||
     String(log.first_seen).toLowerCase().includes(searchTerm.toLowerCase()) ||
-    String(log.last_seen).toLowerCase().includes(searchTerm.toLowerCase())
+    String(log.last_seen).toLowerCase().includes(searchTerm.toLowerCase()) ||
+    String(log.count).toLowerCase().includes(searchTerm.toLowerCase()) ||
+    String(log.scan_number).toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleSort = (column: keyof Log) => {
@@ -167,6 +176,18 @@ const Logs: React.FC = () => {
     return sortableLogs;
   }, [filteredLogs, sortConfig]);
 
+  // Compute current logs for pagination
+  const currentLogs = useMemo(() => {
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    return sortedLogs.slice(indexOfFirstItem, indexOfLastItem);
+  }, [sortedLogs, currentPage]);
+
+  // Reset page when searchTerm changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
   return (
     <LogsWrapper>
       <h2>Logs</h2>
@@ -187,28 +208,51 @@ const Logs: React.FC = () => {
       {error ? (
         <p>{error}</p>
       ) : (
-        <Table>
-          <thead>
-            <tr>
-              <Th onClick={() => handleSort("mac_address")}>MAC Address</Th>
-              <Th onClick={() => handleSort("first_seen")}>First Seen</Th>
-              <Th onClick={() => handleSort("last_seen")}>Last Seen</Th>
-              <Th onClick={() => handleSort("count")}>Count</Th>
-              <Th onClick={() => handleSort("scan_number")}>Scan Number</Th>
-            </tr>
-          </thead>
-          <tbody>
-            {sortedLogs.map((log, index) => (
-              <tr key={index}>
-                <Td>{log.mac_address}</Td>
-                <Td>{new Date(parseInt(log.first_seen) * 1000).toLocaleString()}</Td>
-                <Td>{new Date(parseInt(log.last_seen) * 1000).toLocaleString()}</Td>
-                <Td>{log.count}</Td>
-                <Td>{log.scan_number}</Td>
+        <>
+          <Table>
+            <thead>
+              <tr>
+                <Th onClick={() => handleSort("mac_address")}>MAC Address</Th>
+                <Th onClick={() => handleSort("first_seen")}>First Seen</Th>
+                <Th onClick={() => handleSort("last_seen")}>Last Seen</Th>
+                <Th onClick={() => handleSort("count")}>Count</Th>
+                <Th onClick={() => handleSort("scan_number")}>Scan Number</Th>
               </tr>
-            ))}
-          </tbody>
-        </Table>
+            </thead>
+            <tbody>
+              {currentLogs.map((log, index) => (
+                <tr key={index}>
+                  <Td>{log.mac_address}</Td>
+                  <Td>{new Date(parseInt(log.first_seen) * 1000).toLocaleString()}</Td>
+                  <Td>{new Date(parseInt(log.last_seen) * 1000).toLocaleString()}</Td>
+                  <Td>{log.count}</Td>
+                  <Td>{log.scan_number}</Td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+          <ButtonContainer>
+            <Button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+            >
+              Previous
+            </Button>
+            <Button
+              onClick={() =>
+                setCurrentPage((prev) =>
+                  Math.min(prev + 1, Math.ceil(sortedLogs.length / itemsPerPage))
+                )
+              }
+              disabled={currentPage === Math.ceil(sortedLogs.length / itemsPerPage)}
+            >
+              Next
+            </Button>
+          </ButtonContainer>
+          <PageSpan>
+              Page {currentPage} of {Math.ceil(sortedLogs.length / itemsPerPage)}
+          </PageSpan>
+        </>
       )}
     </LogsWrapper>
   );
