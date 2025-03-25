@@ -19,7 +19,11 @@ const AddNewDevice: React.FC<AddNewDeviceProps> = ({ setIsAdding, fetchDevices }
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: name === "mac_address" ? value.toLowerCase() : value, // Only apply to `mac_address`
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -42,8 +46,6 @@ const AddNewDevice: React.FC<AddNewDeviceProps> = ({ setIsAdding, fetchDevices }
       setTimeout(() => setIsAdding(false), 1000);
     } catch (error) {
       console.error("Failed to add device", error);
-      localStorage.removeItem("token");
-      navigate("/");
       setMessage("Failed to add device. Please try again.");
     }
   };
@@ -57,7 +59,7 @@ const AddNewDevice: React.FC<AddNewDeviceProps> = ({ setIsAdding, fetchDevices }
           <input
             type="text"
             name="mac_address"
-            placeholder="MAC Address"
+            placeholder="Mac Address"
             value={formData.mac_address}
             onChange={handleChange}
             className="device-input"

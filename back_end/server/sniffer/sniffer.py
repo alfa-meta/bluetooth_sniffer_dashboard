@@ -169,24 +169,24 @@ class Sniffer():
                 "timestamp": time.time()
             }
             formatted_devices_list.append(current_device)
-            
-        # # Optionally check if this scanned device is in known devices
-        # for device in self.device_data:
-        #     if device['mac_address'].lower() == mac:
-        #         matched_devices.append({
-        #             "mac_address": mac,
-        #             "device_name": device['device_name'],
-        #             "scanned_device_name": name,
-        #             "timestamp": time.time()
-        #         })
+        
+        # Optionally check if this scanned device is in known devices
+        for mac, name in scanned_devices.items():
+            for device in self.device_data:
+                if device['mac_address'].lower() == mac:
+                    matched_devices.append({
+                        "mac_address": mac,
+                        "device_name": device['device_name'],
+                        "timestamp": time.time()
+                    })
+
 
         # Log and optionally email matched devices
         if matched_devices:
             print("Matched devices found:")
             for match in matched_devices:
                 print(f"MAC: {match['mac_address']}, "
-                    f"Known Name: {match['device_name']}, "
-                    f"Scanned Name: {match['scanned_device_name']}")
+                    f"Known Name: {match['device_name']}, ")
             send_email(f"Matched Addresses:\n{matched_devices}")
         else:
             print("No matched devices found.")

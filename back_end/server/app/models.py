@@ -24,3 +24,8 @@ class Logs(db.Model):
     last_seen = db.Column(db.Integer, nullable=False)
     count = db.Column(db.Integer, nullable=False)
     scan_number = db.Column(db.Integer, nullable=False)
+
+# class Statistics(db.Model):
+#     __tablename__ = 'statistics'
+#     date = db.Column(db.Integer, primary_key=True)
+

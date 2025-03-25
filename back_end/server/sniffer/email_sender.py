@@ -12,6 +12,7 @@ def import_json_file(path: str):
 
 
 def send_email(text: str):
+    ## TODO make it work with multiple emails
 
     data = import_json_file(path='config.json')
     # Email details
