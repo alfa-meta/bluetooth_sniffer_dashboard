@@ -147,7 +147,7 @@ const Devices: React.FC = () => {
   }, [fetchDevices]);
 
   const handleDelete = async (mac_address: string, device_name: string) => {
-    const confirmDelete = window.confirm(`Are you sure you want to delete ${device_name}?`);
+    const confirmDelete = await window.confirm(`Are you sure you want to delete ${device_name}?`);
     if (!confirmDelete) return;
 
     const token = localStorage.getItem("token");
@@ -206,8 +206,10 @@ const Devices: React.FC = () => {
     (device) =>
       device.device_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       device.mac_address.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      device.email.toLowerCase().includes(searchTerm.toLowerCase())
+      device.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      device.device_vendor.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  
 
   const sortedDevices = [...filteredDevices];
   if (sortConfig.key) {
@@ -244,7 +246,7 @@ const Devices: React.FC = () => {
         <SearchIcon />
         <SearchInput
           type="text"
-          placeholder="Search"
+          placeholder="Search Devices"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />

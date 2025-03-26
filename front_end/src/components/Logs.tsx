@@ -203,7 +203,7 @@ const Logs: React.FC = () => {
         <SearchIcon />
         <SearchInput
           type="text"
-          placeholder="Search logs"
+          placeholder="Search Logs"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />

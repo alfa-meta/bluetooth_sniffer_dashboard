@@ -13,75 +13,76 @@
 
 /* Monochromatic Theme (Shades of Blue) */
 body.monochrome {
-  --bg-dark: #1a3553;
-  --bg-light: #336699;
-  --border-color: #5596de;
-  --text-light: #d0e0f0;
-  --highlight: #7ba7d6;
-  --button-bg: #5c8ac6;
-  --button-hover: #88b3e0;
-  --red: #c0392b;
+  --bg-dark: #0e2439;
+  --bg-light: #2d5c88;
+  --border-color: #4a90e2;
+  --text-light: #ffffff;
+  --highlight: #6fa3d3;
+  --button-bg: #3972b2;
+  --button-hover: #5a9fd8;
+  --red: #c96b63;
 }
 
 /* Analogous Theme (Blue, Teal, Green) */
 body.analogous {
-  --bg-dark: #1b4d40;
-  --bg-light: #238b7e;
-  --border-color: #3ba99d;
-  --text-light: #c5e8e5;
-  --highlight: #80c4be;
-  --button-bg: #5fa68a;
-  --button-hover: #78b8a3;
-  --red: #b0302d;
+  --bg-dark: #103b33;
+  --bg-light: #2c8a7d;
+  --border-color: #4bbfad;
+  --text-light: #ffffff;
+  --highlight: #6cd6c8;
+  --button-bg: #3f9b82;
+  --button-hover: #56bfa1;
+  --red: #c96b63;
 }
 
 /* Complementary Theme (Blue and Orange) */
 body.complementary {
-  --bg-dark: #1d3a5f;
-  --bg-light: #f5d7b5;
-  --border-color: #e8a55f;
-  --text-light: #283a4d;
-  --highlight: #d07e30;
-  --button-bg: #e09b5f;
-  --button-hover: #d07e30;
-  --red: #c0392b;
+  --bg-dark: #142f4c;
+  --bg-light: #fbe6cf;
+  --border-color: #f0a15c;
+  --text-light: #0f1f30;
+  --highlight: #d67e2e;
+  --button-bg: #f0a15c;
+  --button-hover: #d67e2e;
+  --red: #c96b63;
 }
 
 /* Triadic Theme (Red, Yellow, Blue) */
 body.triadic {
-  --bg-dark: #633c32;
-  --bg-light: #f3dcc3;
-  --border-color: #e1b763;
-  --text-light: #5a2c2c;
-  --highlight: #d6a253;
-  --button-bg: #d88f6b;
-  --button-hover: #a07a5c;
-  --red: #d72638;
+  --bg-dark: #4b2a25;
+  --bg-light: #f4e2ca;
+  --border-color: #e0a847;
+  --text-light: #2e1b1b;
+  --highlight: #ce903b;
+  --button-bg: #cf7d5d;
+  --button-hover: #9b644f;
+  --red: #cc5f5b;
 }
 
 /* Complementary Theme (Blue and Orange) - Light Mode */
 body.complementary-light {
-  --bg-dark: #d6782e;
-  --bg-light: #fae3c8;
-  --border-color: #e0a571;
-  --text-light: #37475a;
-  --highlight: #455a75;
-  --button-bg: #e0a571;
-  --button-hover: #d6782e;
-  --red: #b0302d;
+  --bg-dark: #d6701e;
+  --bg-light: #fdf1e4;
+  --border-color: #df9a5e;
+  --text-light: #2e3c4e;
+  --highlight: #3e5472;
+  --button-bg: #df9a5e;
+  --button-hover: #c7651b;
+  --red: #c96b63;
 }
 
 /* GitHub Theme - Softer Light Mode with Darker Grey */
 body.github-light {
-  --bg-dark: #dadfe5;
-  --bg-light: #e6eaee;
-  --border-color: #a7b0ba;
-  --text-light: #1b1f24;
-  --highlight: #074a91;
-  --button-bg: #238636;
-  --button-hover: #1b6b2a;
-  --red: #cf222e;
+  --bg-dark: #cfd4da;
+  --bg-light: #f0f3f6;
+  --border-color: #98a3af;
+  --text-light: #0d1117;
+  --highlight: #0969da;
+  --button-bg: #2da44e;
+  --button-hover: #1a7f37;
+  --red: #bf4a47;
 }
+
 
 
 body {

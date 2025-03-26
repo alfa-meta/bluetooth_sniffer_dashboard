@@ -155,7 +155,7 @@ const Admin: React.FC = () => {
         <SearchIcon />
         <SearchInput
           type="text"
-          placeholder="Search"
+          placeholder="Search Admin"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
