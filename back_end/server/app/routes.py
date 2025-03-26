@@ -4,12 +4,11 @@ from flask_bcrypt import Bcrypt
 from flask_socketio import emit, disconnect
 import threading
 import subprocess
-import select
-import os
+
 from config import Config
-from .models import Device, User, Logs, db
+from .models import Device, User, Logs, DeviceVendor, db
 from . import socketio
-from .functions import set_websocket_connected, get_websocket_connected
+from .functions import set_websocket_connected, query_mac_vendors_api
 import time
 
 main_bp = Blueprint('main', __name__)
@@ -117,7 +116,7 @@ def delete_user(user_id):
 def get_all_devices():
     try:
         devices = Device.query.all()
-        device_list = [{"mac_address": d.mac_address, "device_name": d.device_name, "last_seen": d.last_seen, "email": d.email} for d in devices]
+        device_list = [{"mac_address": d.mac_address, "device_vendor": d.device_vendor, "device_name": d.device_name, "last_seen": d.last_seen, "email": d.email} for d in devices]
         return jsonify(device_list), 200
     except Exception as e:
         print(f"Error in get_all_devices: {e}")
@@ -139,29 +138,78 @@ def delete_device(mac_address):
         return jsonify({"message": "An error occurred, please try again later"}), 500
 
 
+# @main_bp.route("/add_device", methods=["POST"])
+# @jwt_required()
+# def add_device():
+#     try:
+#         data = request.get_json()
+ 
+#         if not data:
+#             return jsonify({"message": "No data provided"}), 400
+ 
+#         mac_address = data.get("mac_address")
+#         device_name = data.get("device_name")
+#         last_seen = data.get("last_seen")
+#         email = data.get("email")
+
+#         if not all([mac_address, device_name, last_seen, email]):
+#             return jsonify({"message": "Missing required fields"}), 400
+ 
+#         new_device = Device(
+#             mac_address=mac_address,
+#             device_name=device_name,
+#             last_seen=last_seen,
+#             email=email
+#         )
+
+#         db.session.add(new_device)
+#         db.session.commit()
+
+#         return jsonify({"message": "Device added successfully"}), 201
+#     except Exception as e:
+#         print("Error:", e)
+#         return jsonify({"message": "An error occurred, please try again later"}), 500
+    
 @main_bp.route("/add_device", methods=["POST"])
 @jwt_required()
 def add_device():
     try:
         data = request.get_json()
- 
         if not data:
             return jsonify({"message": "No data provided"}), 400
- 
+
         mac_address = data.get("mac_address")
+        device_vendor = "Unknown"
         device_name = data.get("device_name")
         last_seen = data.get("last_seen")
         email = data.get("email")
 
-        if not all([mac_address, device_name, last_seen, email]):
+        if not all([mac_address, device_name, device_vendor, last_seen, email]):
             return jsonify({"message": "Missing required fields"}), 400
- 
+
+        # Check DeviceVendor table row count
+        vendor_count = DeviceVendor.query.count()
+        print(f"vendor_count: {vendor_count}")
+        if vendor_count > 10000:
+            mac_prefix = mac_address.lower()[:8]
+            print(f"mac_prefix: {mac_prefix}")
+            vendor = DeviceVendor.query.filter_by(mac_address_prefix=mac_prefix).first()
+            if vendor:
+                device_vendor = vendor.vendor_name
+                print(f"device_name: {device_name}")
+            else:
+                device_vendor = query_mac_vendors_api(mac_prefix)
+                print(f"Response: {device_vendor}")
+
         new_device = Device(
             mac_address=mac_address,
             device_name=device_name,
+            device_vendor=device_vendor,
             last_seen=last_seen,
             email=email
         )
+
+        print(new_device)
 
         db.session.add(new_device)
         db.session.commit()
@@ -170,6 +218,7 @@ def add_device():
     except Exception as e:
         print("Error:", e)
         return jsonify({"message": "An error occurred, please try again later"}), 500
+
 
 @main_bp.route("/logs", methods=["GET"])
 @jwt_required()

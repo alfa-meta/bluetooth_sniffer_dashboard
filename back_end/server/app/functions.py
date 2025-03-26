@@ -1,4 +1,5 @@
 import json
+import requests
 
 def import_json_file(path: str):
     # Load the JSON file
@@ -25,3 +26,9 @@ def set_websocket_connected(path: str, value: bool):
     # Write the updated data back to the file
     with open(path, 'w') as file:
         json.dump(data, file, indent=4)
+
+
+def query_mac_vendors_api(mac_address: str) -> str:
+    url = f"https://api.macvendors.com/{mac_address}"
+    response = requests.get(url)
+    return response.text if response.status_code == 200 else "Vendor not found"

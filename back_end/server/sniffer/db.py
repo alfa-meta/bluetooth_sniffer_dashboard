@@ -36,15 +36,35 @@ def create_tables():
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS device (
         mac_address TEXT PRIMARY KEY,
+        device_vendor TEXT,
         device_name TEXT NOT NULL,
         last_seen INTEGER NOT NULL,
         email TEXT NOT NULL,
-        FOREIGN KEY (email) REFERENCES user(email) ON DELETE CASCADE
+        FOREIGN KEY (email) REFERENCES user(email)
+    )
+    ''')
+
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS logs (
+        mac_address TEXT PRIMARY KEY,
+        device_vendor TEXT,
+        first_seen INTEGER NOT NULL,
+        last_seen INTEGER NOT NULL,
+        count INTEGER NOT NULL,
+        scan_number INTEGER NOT NULL
+    )
+    ''')
+
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS device_vendor (
+        mac_address_prefix TEXT PRIMARY KEY,
+        vendor_name TEXT NOT NULL
     )
     ''')
 
     conn.commit()
     conn.close()
+
 
 
 ###### Device ###########
@@ -226,7 +246,6 @@ def update_logs(device_list: list):
     conn = connect_db()
     cursor = conn.cursor()
 
-    # Get the highest current scan_number; default to 0 if none exists.
     cursor.execute("SELECT MAX(scan_number) FROM logs")
     result = cursor.fetchone()[0]
     latest_scan = result if result is not None else 0
@@ -234,12 +253,12 @@ def update_logs(device_list: list):
 
     current_time = int(time.time())
     for device in device_list:
-        mac = device["mac_address"]
-        # Check if a log entry exists for this MAC address.
+        mac = device.get("mac_address")
+        device_vendor = device.get("device_vendor", "Unknown")  # Safe access
+
         cursor.execute("SELECT count FROM logs WHERE mac_address = ?", (mac,))
         row = cursor.fetchone()
         if row:
-            # Update existing record.
             new_count = row[0] + 1
             cursor.execute("""
                 UPDATE logs 
@@ -247,20 +266,44 @@ def update_logs(device_list: list):
                 WHERE mac_address = ?
             """, (current_time, new_count, new_scan_number, mac))
         else:
-            # Insert a new log entry.
             cursor.execute("""
-                INSERT INTO logs (mac_address, first_seen, last_seen, count, scan_number) 
-                VALUES (?, ?, ?, ?, ?)
-            """, (mac, current_time, current_time, 1, new_scan_number))
-    
-    print(f"Logs were updated at {datetime.now()}")
+                INSERT INTO logs (mac_address, device_vendor, first_seen, last_seen, count, scan_number) 
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (mac, device_vendor, current_time, current_time, 1, new_scan_number))
 
+    print(f"Logs were updated at {datetime.now()}")
     conn.commit()
     conn.close()
 
 
+
 ###### Logs ############
 
+###### Device Vendor ###
+
+def get_logs_with_vendor():
+    conn = connect_db()
+    cursor = conn.cursor()
+
+    cursor.execute('''
+        SELECT 
+            logs.mac_address,
+            COALESCE(device_vendor.vendor_name, 'Unknown') AS vendor_name,
+            logs.first_seen,
+            logs.last_seen,
+            logs.count,
+            logs.scan_number
+        FROM logs
+        LEFT JOIN device_vendor
+        ON logs.mac_address LIKE device_vendor.mac_address_prefix || '%'
+    ''')
+
+    results = cursor.fetchall()
+    conn.close()
+    return results
+
+
+###### Device Vendor ###
 def display_database():
     conn = connect_db()
     cursor = conn.cursor()

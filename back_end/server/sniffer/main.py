@@ -31,11 +31,10 @@ if __name__ == "__main__":
     interfaces = [] ##get_tshark_interfaces()
     interface_found = check_for_nrf_sniffer(interfaces=interfaces, sniffer_mode=sniffer_mode)
     todays_date = str(get_current_date())
-    sniffer = Sniffer(100, user_data=user_data, device_data=device_data, sniffer_mode=sniffer_mode)
+    sniffer = Sniffer(number_of_packets=100, user_data=user_data, device_data=device_data, sniffer_mode=sniffer_mode)
 
     if interface_found:
-        print("nRF Sniffer for Bluetooth LE was found!")
-        create_todays_directory()
+        # create_todays_directory()
         sniffer.output_source_addresses(f"outputs\\{todays_date}\\{todays_date}"+".json")  
     else:
         print("nRF Sniffer for Bluetooth LE was not found!")

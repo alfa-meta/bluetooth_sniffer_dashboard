@@ -6,3 +6,4 @@ flask-bcrypt
 flask-cors
 flask-socketio
 eventlet
+requests

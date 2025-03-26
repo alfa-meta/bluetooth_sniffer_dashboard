@@ -6,6 +6,8 @@ import { FaSearch } from "react-icons/fa";
 
 interface Log {
   mac_address: string;
+  device_vendor_name: string;
+  is_target_device: boolean;
   first_seen: string;
   last_seen: string;
   count: number;
@@ -219,6 +221,8 @@ const Logs: React.FC = () => {
             <thead>
               <tr>
                 <Th onClick={() => handleSort("mac_address")}>MAC Address</Th>
+                <Th onClick={() => handleSort("device_vendor_name")}>Device Vendor</Th>
+                <Th onClick={() => handleSort("is_target_device")}>Target Device</Th>
                 <Th onClick={() => handleSort("first_seen")}>First Seen</Th>
                 <Th onClick={() => handleSort("last_seen")}>Last Seen</Th>
                 <Th onClick={() => handleSort("count")}>Count</Th>
@@ -229,6 +233,8 @@ const Logs: React.FC = () => {
               {currentLogs.map((log, index) => (
                 <tr key={index}>
                   <Td>{log.mac_address}</Td>
+                  <Td>{log.device_vendor_name}</Td>
+                  <Td>{log.is_target_device}</Td>
                   <Td>{new Date(parseInt(log.first_seen) * 1000).toLocaleString()}</Td>
                   <Td>{new Date(parseInt(log.last_seen) * 1000).toLocaleString()}</Td>
                   <Td>{log.count}</Td>

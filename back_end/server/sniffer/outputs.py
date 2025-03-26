@@ -1,4 +1,5 @@
 import os
+import re
 from datetime import date
 
 def ensure_directory_exists(name_of_directory: str):
@@ -35,3 +36,23 @@ def get_current_date():
     """
     today = date.today().strftime("%d-%m-%Y")
     return today
+
+def get_mac_vendors() -> list:
+    with open("mac_vendor_list.txt") as file:
+        content = file.read()
+
+    result = extract_mac_vendors(content)
+    return result
+
+def extract_mac_vendors(text) -> list:
+    pattern = re.compile(r'[\da-f]{2}:[\da-f]{2}:[\da-f]{2} - (.+)', re.IGNORECASE)
+    mac_vendor_list = []
+
+    for line in text.splitlines():
+        match = pattern.search(line)
+        if match:
+            mac = line.split('-')[1].strip()
+            vendor = match.group(1).strip()
+            mac_vendor_list.append((mac, vendor))
+    
+    return mac_vendor_list

@@ -8,6 +8,7 @@ import AddNewDevice from "./AddNewDevice";
 interface Device {
   mac_address: string;
   device_name: string;
+  device_vendor: string;
   last_seen: string;
   email: string;
 }
@@ -114,7 +115,6 @@ const Devices: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  // For mac_address, we add a mode property ("alpha" or "numeric")
   const [sortConfig, setSortConfig] = useState<{
     key: string | null;
     direction: "asc" | "desc";
@@ -180,17 +180,15 @@ const Devices: React.FC = () => {
   const handleSort = (key: string) => {
     if (key === "mac_address") {
       if (sortConfig.key !== "mac_address") {
-        // Start with alphabetical ascending
         setSortConfig({ key: "mac_address", direction: "asc", mode: "alpha" });
       } else {
-        // Cycle through: alpha asc -> alpha desc -> numeric asc -> numeric desc -> back to alpha asc
         if (sortConfig.mode === "alpha" && sortConfig.direction === "asc") {
           setSortConfig({ key: "mac_address", direction: "desc", mode: "alpha" });
         } else if (sortConfig.mode === "alpha" && sortConfig.direction === "desc") {
           setSortConfig({ key: "mac_address", direction: "asc", mode: "numeric" });
         } else if (sortConfig.mode === "numeric" && sortConfig.direction === "asc") {
           setSortConfig({ key: "mac_address", direction: "desc", mode: "numeric" });
-        } else if (sortConfig.mode === "numeric" && sortConfig.direction === "desc") {
+        } else {
           setSortConfig({ key: "mac_address", direction: "asc", mode: "alpha" });
         }
       }
@@ -219,15 +217,14 @@ const Devices: React.FC = () => {
           const res = a.mac_address.localeCompare(b.mac_address);
           return sortConfig.direction === "asc" ? res : -res;
         } else {
-          // Numeric: remove colons and parse as hex numbers
           const numA = parseInt(a.mac_address.replace(/:/g, ""), 16);
           const numB = parseInt(b.mac_address.replace(/:/g, ""), 16);
           const res = numA - numB;
           return sortConfig.direction === "asc" ? res : -res;
         }
       }
-      if (sortConfig.key === "device_name" || sortConfig.key === "email") {
-        const res = a[sortConfig.key].localeCompare(b[sortConfig.key]);
+      if (sortConfig.key && ["device_name", "email", "device_vendor"].includes(sortConfig.key)) {
+        const res = a[sortConfig.key as keyof Device].localeCompare(b[sortConfig.key as keyof Device]);
         return sortConfig.direction === "asc" ? res : -res;
       }
       if (sortConfig.key === "last_seen") {
@@ -261,9 +258,8 @@ const Devices: React.FC = () => {
         <Table>
           <thead>
             <tr>
-              <Th onClick={() => handleSort("mac_address")}>
-                MAC Address
-              </Th>
+              <Th onClick={() => handleSort("mac_address")}>MAC Address</Th>
+              <Th onClick={() => handleSort("device_vendor")}>Device Vendor</Th>
               <Th onClick={() => handleSort("device_name")}>Device Name</Th>
               <Th onClick={() => handleSort("last_seen")}>Last Seen</Th>
               <Th onClick={() => handleSort("email")}>User Email</Th>
@@ -274,17 +270,14 @@ const Devices: React.FC = () => {
             {sortedDevices.map((device) => (
               <tr key={device.mac_address}>
                 <Td>{device.mac_address}</Td>
+                <Td>{device.device_vendor}</Td>
                 <Td>{device.device_name}</Td>
-                <Td>
-                  {new Date(parseInt(device.last_seen) * 1000).toLocaleString()}
-                </Td>
+                <Td>{new Date(parseInt(device.last_seen) * 1000).toLocaleString()}</Td>
                 <Td>{device.email}</Td>
                 <Td>
                   <DeleteButton
                     disabled={isDeleting}
-                    onClick={() =>
-                      handleDelete(device.mac_address, device.device_name)
-                    }
+                    onClick={() => handleDelete(device.mac_address, device.device_name)}
                   >
                     {isDeleting ? "Deleting..." : "Delete"}
                   </DeleteButton>
