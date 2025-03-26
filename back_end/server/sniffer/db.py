@@ -48,10 +48,12 @@ def create_tables():
     CREATE TABLE IF NOT EXISTS logs (
         mac_address TEXT PRIMARY KEY,
         device_vendor TEXT,
+        target_device BOOLEAN DEFAULT FALSE,
         first_seen INTEGER NOT NULL,
         last_seen INTEGER NOT NULL,
         count INTEGER NOT NULL,
-        scan_number INTEGER NOT NULL
+        scan_number INTEGER NOT NULL,
+        FOREIGN KEY (mac_address) REFERENCES device(mac_address)
     )
     ''')
 
@@ -67,18 +69,20 @@ def create_tables():
 
 
 
+
 ###### Device ###########
 
-def create_device(mac_address: str, device_name: str, last_seen: int, email: str):
+def create_device(mac_address: str, device_vendor: str, device_name: str, last_seen: int, email: str):
     conn = connect_db()
     cursor = conn.cursor()
     
     try:
-        cursor.execute('''INSERT INTO device (mac_address, device_name, last_seen, email) VALUES (?, ?, ?, ?)''',
-                       (mac_address, device_name, last_seen, email))
+        cursor.execute('''INSERT INTO device (mac_address, device_vendor, device_name, last_seen, email)
+                          VALUES (?, ?, ?, ?, ?)''',
+                       (mac_address, device_vendor, device_name, last_seen, email))
         conn.commit()
         print(f"Device with MAC Address {mac_address} added successfully.")
-        print(mac_address, device_name, last_seen, email)
+        print(mac_address, device_vendor, device_name, last_seen, email)
     except sqlite3.IntegrityError as e:
         if "FOREIGN KEY constraint failed" in str(e):
             print(f"Error: The email '{email}' does not exist in the Users table.")
@@ -87,14 +91,18 @@ def create_device(mac_address: str, device_name: str, last_seen: int, email: str
     finally:
         conn.close()
 
-def update_device(mac_address: str, device_name=None, last_seen=None, email=None):
+
+def update_device(mac_address: str, device_vendor=None, device_name=None, last_seen=None, email=None):
     conn = connect_db()
     cursor = conn.cursor()
     
     fields: list = []
     values: list = []
 
-    if device_name is not None:  # Allow empty strings
+    if device_vendor is not None:
+        fields.append("device_vendor = ?")
+        values.append(device_vendor)
+    if device_name is not None:
         fields.append("device_name = ?")
         values.append(device_name)
     if last_seen is not None:
@@ -104,7 +112,7 @@ def update_device(mac_address: str, device_name=None, last_seen=None, email=None
         fields.append("email = ?")
         values.append(email)
 
-    if not fields:  # No fields to update
+    if not fields:
         print("No fields to update.")
         conn.close()
         return
@@ -131,10 +139,11 @@ def delete_device(mac_address: str):
         conn.close()
         return
 
-    cursor.execute('''DELETE FROM device WHERE mac_address = ?''', (mac_address,))
+    cursor.execute("DELETE FROM device WHERE mac_address = ?", (mac_address,))
     conn.commit()
     print(f"Device with MAC Address {mac_address} deleted successfully.")
     conn.close()
+
 
 def fetch_all_devices():
     conn = connect_db()
@@ -151,9 +160,10 @@ def fetch_all_devices():
             print(device)
             device_list.append({
                 "mac_address": device[0],
-                "device_name": device[1], 
-                "last_seen": device[2], 
-                "email": device[3]
+                "device_vendor": device[1],
+                "device_name": device[2],
+                "last_seen": device[3],
+                "email": device[4]
             })
 
     conn.close()
@@ -248,39 +258,46 @@ def update_logs(device_list: list):
 
     cursor.execute("SELECT MAX(scan_number) FROM logs")
     result = cursor.fetchone()[0]
-    latest_scan = result if result is not None else 0
-    new_scan_number = latest_scan + 1
+    new_scan_number = (result if result is not None else 0) + 1
 
     current_time = int(time.time())
     for device in device_list:
         mac = device.get("mac_address")
-        device_vendor = device.get("device_vendor", "Unknown")
+        
+        # 1. Try to get vendor from device table
+        cursor.execute("SELECT device_vendor FROM device WHERE mac_address = ?", (mac,))
+        result = cursor.fetchone()
+        if result and result[0]:
+            device_vendor = result[0]
+        else:
+            # 2. Try to get vendor from device_vendor table
+            mac_prefix = mac[:8].upper()
+            cursor.execute("SELECT vendor_name FROM device_vendor WHERE mac_address_prefix = ?", (mac_prefix,))
+            result = cursor.fetchone()
+            device_vendor = result[0] if result else device.get("device_vendor", "Unknown")
 
-        # Check if the device is in the device table
         cursor.execute("SELECT 1 FROM device WHERE mac_address = ?", (mac,))
-        target_device = cursor.fetchone() is not None
+        target_device = 1 if cursor.fetchone() else 0
 
-        # Log update or insert
         cursor.execute("SELECT count FROM logs WHERE mac_address = ?", (mac,))
         row = cursor.fetchone()
         if row:
             new_count = row[0] + 1
             cursor.execute("""
                 UPDATE logs 
-                SET last_seen = ?, count = ?, scan_number = ? 
+                SET last_seen = ?, count = ?, scan_number = ?, target_device = ?, device_vendor = ?
                 WHERE mac_address = ?
-            """, (current_time, new_count, new_scan_number, mac))
+            """, (current_time, new_count, new_scan_number, target_device, device_vendor, mac))
         else:
             cursor.execute("""
-                INSERT INTO logs (mac_address, device_vendor, first_seen, last_seen, count, scan_number) 
-                VALUES (?, ?, ?, ?, ?, ?)
-            """, (mac, device_vendor, current_time, current_time, 1, new_scan_number))
-
-        print(f"MAC {mac} | Target Device: {target_device}")
+                INSERT INTO logs (mac_address, device_vendor, target_device, first_seen, last_seen, count, scan_number) 
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, (mac, device_vendor, target_device, current_time, current_time, 1, new_scan_number))
 
     print(f"Logs were updated at {datetime.now()}")
     conn.commit()
     conn.close()
+
 
 
 

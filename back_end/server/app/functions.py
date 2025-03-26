@@ -31,4 +31,4 @@ def set_websocket_connected(path: str, value: bool):
 def query_mac_vendors_api(mac_address: str) -> str:
     url = f"https://api.macvendors.com/{mac_address}"
     response = requests.get(url)
-    return response.text if response.status_code == 200 else "Vendor not found"
+    return response.text if response.status_code == 200 else "Unknown"
