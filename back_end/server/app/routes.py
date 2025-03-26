@@ -228,6 +228,8 @@ def get_all_logs():
         logs_list = [
             {
                 "mac_address": log.mac_address,
+                "device_vendor": log.device_vendor,
+                "target_device": log.target_device,
                 "first_seen": log.first_seen,
                 "last_seen": log.last_seen,
                 "count": log.count,

@@ -254,8 +254,13 @@ def update_logs(device_list: list):
     current_time = int(time.time())
     for device in device_list:
         mac = device.get("mac_address")
-        device_vendor = device.get("device_vendor", "Unknown")  # Safe access
+        device_vendor = device.get("device_vendor", "Unknown")
 
+        # Check if the device is in the device table
+        cursor.execute("SELECT 1 FROM device WHERE mac_address = ?", (mac,))
+        target_device = cursor.fetchone() is not None
+
+        # Log update or insert
         cursor.execute("SELECT count FROM logs WHERE mac_address = ?", (mac,))
         row = cursor.fetchone()
         if row:
@@ -271,9 +276,12 @@ def update_logs(device_list: list):
                 VALUES (?, ?, ?, ?, ?, ?)
             """, (mac, device_vendor, current_time, current_time, 1, new_scan_number))
 
+        print(f"MAC {mac} | Target Device: {target_device}")
+
     print(f"Logs were updated at {datetime.now()}")
     conn.commit()
     conn.close()
+
 
 
 
