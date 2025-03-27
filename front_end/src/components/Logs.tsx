@@ -221,13 +221,27 @@ const Logs: React.FC = () => {
           <Table>
             <thead>
               <tr>
-                <Th onClick={() => handleSort("mac_address")}>MAC Address</Th>
-                <Th onClick={() => handleSort("device_vendor")}>Device Vendor</Th>
-                <Th onClick={() => handleSort("target_device")}>Target Device</Th>
-                <Th onClick={() => handleSort("first_seen")}>First Seen</Th>
-                <Th onClick={() => handleSort("last_seen")}>Last Seen</Th>
-                <Th onClick={() => handleSort("count")}>Count</Th>
-                <Th onClick={() => handleSort("scan_number")}>Scan Number</Th>
+                <Th onClick={() => handleSort("mac_address")}>
+                  MAC Address {sortConfig?.key === "mac_address" && (sortConfig.direction === "asc" ? "▲" : "▼")}
+                </Th>
+                <Th onClick={() => handleSort("device_vendor")}>
+                  Device Vendor {sortConfig?.key === "device_vendor" && (sortConfig.direction === "asc" ? "▲" : "▼")}
+                </Th>
+                <Th onClick={() => handleSort("target_device")}>
+                  Target Device {sortConfig?.key === "target_device" && (sortConfig.direction === "asc" ? "▲" : "▼")}
+                </Th>
+                <Th onClick={() => handleSort("first_seen")}>
+                  First Seen {sortConfig?.key === "first_seen" && (sortConfig.direction === "asc" ? "▲" : "▼")}
+                </Th>
+                <Th onClick={() => handleSort("last_seen")}>
+                  Last Seen {sortConfig?.key === "last_seen" && (sortConfig.direction === "asc" ? "▲" : "▼")}
+                </Th>
+                <Th onClick={() => handleSort("count")}>
+                  Count {sortConfig?.key === "count" && (sortConfig.direction === "asc" ? "▲" : "▼")}
+                </Th>
+                <Th onClick={() => handleSort("scan_number")}>
+                  Scan Number {sortConfig?.key === "scan_number" && (sortConfig.direction === "asc" ? "▲" : "▼")}
+                </Th>
               </tr>
             </thead>
             <tbody>

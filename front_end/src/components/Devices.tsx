@@ -261,11 +261,21 @@ const Devices: React.FC = () => {
         <Table>
           <thead>
             <tr>
-              <Th onClick={() => handleSort("mac_address")}>MAC Address</Th>
-              <Th onClick={() => handleSort("device_vendor")}>Device Vendor</Th>
-              <Th onClick={() => handleSort("device_name")}>Device Name</Th>
-              <Th onClick={() => handleSort("last_seen")}>Last Seen</Th>
-              <Th onClick={() => handleSort("email")}>User Email</Th>
+              <Th onClick={() => handleSort("mac_address")}>
+                MAC Address {sortConfig.key === "mac_address" && (sortConfig.direction === "asc" ? "▲" : "▼")}
+              </Th>
+              <Th onClick={() => handleSort("device_vendor")}>
+                Device Vendor {sortConfig.key === "device_vendor" && (sortConfig.direction === "asc" ? "▲" : "▼")}
+              </Th>
+              <Th onClick={() => handleSort("device_name")}>
+                Device Name {sortConfig.key === "device_name" && (sortConfig.direction === "asc" ? "▲" : "▼")}
+              </Th>
+              <Th onClick={() => handleSort("last_seen")}>
+                Last Seen {sortConfig.key === "last_seen" && (sortConfig.direction === "asc" ? "▲" : "▼")}
+              </Th>
+              <Th onClick={() => handleSort("email")}>
+                User Email {sortConfig.key === "email" && (sortConfig.direction === "asc" ? "▲" : "▼")}
+              </Th>
               <Th>Actions</Th>
             </tr>
           </thead>
