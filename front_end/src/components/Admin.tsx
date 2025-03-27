@@ -53,7 +53,7 @@ const Th = styled.th`
   padding: 10px;
   border-bottom: 2px solid var(--border-color);
   border-right: 2px solid var(--border-color);
-  text-align: left;
+  text-align: center;
   background: var(--table-header);
   cursor: pointer;
 `;
@@ -62,7 +62,8 @@ const Td = styled.td`
   padding: 10px;
   border-bottom: 1px solid var(--border-color);
   border-right: 2px solid var(--border-color);
-`;
+  text-align: center;
+  `;
 
 const DeleteButton = styled.button`
   padding: 5px 10px;

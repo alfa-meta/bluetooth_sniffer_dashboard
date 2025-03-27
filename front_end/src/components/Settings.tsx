@@ -42,7 +42,7 @@ const Label = styled.div`
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  text-align: right;
+  text-align: center;
   padding-right: 10px;
 `;
 
