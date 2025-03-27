@@ -19012,6 +19012,13 @@ Num    MAC        Vendor
 19008 - fc:fa:f7 - Shanghai Baud Data Communication Co.,Ltd.
 19009 - fc:fb:fb - CISCO SYSTEMS, INC.
 19010 - fc:fe:77 - Hitachi Reftechno, Inc.
+19011 - 00:16:a4 - Ezurio Ltd
+19012 - 00:18:f4 - EO TECHNICS Co., Ltd.
+19013 - 9c:2f:9d - Liteon Technology Corporation
+19014 - 9c:2f:9d - Liteon Technology Corporation
+19015 - 9c:2f:9d - Liteon Technology Corporation
+19016 - 9c:2f:9d - Liteon Technology Corporation
+19017 - b0:d2:78 - Texas Instruments
 
 Wireless MACs:
 Num    MAC        Vendor
