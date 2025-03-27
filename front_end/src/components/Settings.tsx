@@ -2,29 +2,38 @@ import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 
-// Styled component for the main settings container
+// Styled component definitions
 const SettingsWrapper = styled.div`
   width: 100%;
   height: 100%;
-  padding: 20px;
+  padding: 35px;
   display: flex;
   flex-direction: column;
   align-items: center;
   overflow: auto;
 `;
 
-// Styled component for the settings grid layout
 const SettingsGrid = styled.div`
   display: grid;
   grid-template-columns: 1fr 2fr;
   gap: 20px;
-  width: 60%;
-  max-width: 600px;
+  width: 100%;
+  max-width: 900px;
   align-items: center;
   justify-content: center;
 `;
 
-// Styled component for the labels in the settings grid
+const Row = styled.div`
+  grid-column: span 2;
+  background-color: #1e1e1e;
+  padding: 10px;
+  border-radius: 8px;
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  align-items: center;
+  gap: 10px;
+`;
+
 const Label = styled.div`
   font-size: 18px;
   font-weight: bold;
@@ -36,7 +45,6 @@ const Label = styled.div`
   padding-right: 10px;
 `;
 
-// Styled component for content sections
 const Content = styled.div`
   display: flex;
   flex-wrap: wrap;
@@ -45,7 +53,6 @@ const Content = styled.div`
   align-items: center;
 `;
 
-// Styled component for theme selection buttons
 const ThemeItem = styled.div`
   padding: 10px 20px;
   background: var(--button-bg);
@@ -59,7 +66,28 @@ const ThemeItem = styled.div`
   }
 `;
 
-// List of available themes
+const Input = styled.input`
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  background: #2b2b2b;
+  color: white;
+`;
+
+const Button = styled.button`
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  background-color: var(--button-bg);
+  color: var(--text-light);
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--highlight);
+  }
+`;
+
+
 const themes = [
   { name: "Gruvbox Dark (Default)", className: "" },
   { name: "Monochrome", className: "monochrome" },
@@ -69,15 +97,31 @@ const themes = [
 ];
 
 const Settings: React.FC = () => {
-  const [email, setEmail] = useState<string | null>(null); // State to store user email
-  const navigate = useNavigate(); // Hook for programmatic navigation
+  const [email, setEmail] = useState<string | null>(null);
+  const [packets, setPackets] = useState("");
+  const [scanTime, setScanTime] = useState("");
+  const [initialState, setInitialState] = useState({ packets: "", scanTime: "" });
+  const navigate = useNavigate();
 
   useEffect(() => {
+    const storedPackets = localStorage.getItem("packets") || "100";
+    const storedScanTime = localStorage.getItem("scanTime") || "15";
+
+    setPackets(storedPackets);
+    setScanTime(storedScanTime);
+    setInitialState({ packets: storedPackets, scanTime: storedScanTime });
+
+    localStorage.setItem("packets", storedPackets);
+    localStorage.setItem("scanTime", storedScanTime);
+
+    const savedTheme = localStorage.getItem("theme") || "";
+    document.body.className = savedTheme;
+
     const fetchUserEmail = async () => {
-      const token = localStorage.getItem("token"); // Retrieve authentication token from local storage
+      const token = localStorage.getItem("token");
       if (!token) {
         localStorage.removeItem("token");
-        navigate("/"); // Redirect to home page if token is missing
+        navigate("/");
         return;
       }
 
@@ -92,11 +136,12 @@ const Settings: React.FC = () => {
 
         const data = await response.json();
         if (response.ok) {
-          setEmail(data.email); // Set user email if response is successful
+          setEmail(data.email);
+          localStorage.setItem("email", data.email);
         } else {
           console.error("Error fetching user data:", data.message);
           localStorage.removeItem("token");
-          navigate("/"); // Redirect on error
+          navigate("/");
         }
       } catch (error) {
         console.error("Error:", error);
@@ -108,30 +153,83 @@ const Settings: React.FC = () => {
     fetchUserEmail();
   }, [navigate]);
 
-  // Function to change the theme by updating the body's className
   const changeTheme = (className: string) => {
     document.body.className = className;
+    localStorage.setItem("theme", className);
+  };
+
+  const hasChanges = packets !== initialState.packets || scanTime !== initialState.scanTime;
+
+  const handleApply = async () => {
+    const confirm = await window.confirm("Apply new settings?");
+    if (!confirm) return;
+  
+    const validatedPackets = Math.max(parseInt(packets) || 0, 10);
+    const validatedScanTime = Math.max(parseInt(scanTime) || 0, 3);
+  
+    setPackets(validatedPackets.toString());
+    setScanTime(validatedScanTime.toString());
+  
+    localStorage.setItem("packets", validatedPackets.toString());
+    localStorage.setItem("scanTime", validatedScanTime.toString());
+    setInitialState({
+      packets: validatedPackets.toString(),
+      scanTime: validatedScanTime.toString(),
+    });
   };
 
   return (
     <SettingsWrapper>
       <h2>Settings</h2>
       <SettingsGrid>
-        <Label>E-mail</Label>
-        <Content>{email || "Loading..."}</Content> {/* Display email or loading text */}
-        
-        <Label>Themes</Label>
-        <Content>
-          {/* Render available themes as selectable buttons */}
-          {themes.map((theme) => (
-            <ThemeItem
-              key={theme.name}
-              onClick={() => changeTheme(theme.className)}
-            >
-              {theme.name}
-            </ThemeItem>
-          ))}
-        </Content>
+        <Row>
+          <Label>E-mail</Label>
+          <Content>{email || "Loading..."}</Content>
+        </Row>
+
+        <Row>
+          <Label>Themes</Label>
+          <Content>
+            {themes.map((theme) => (
+              <ThemeItem key={theme.name} onClick={() => changeTheme(theme.className)}>
+                {theme.name}
+              </ThemeItem>
+            ))}
+          </Content>
+        </Row>
+
+        <Row>
+          <Label>Number of Packets</Label>
+          <Content>
+          <Input
+            type="number"
+            min="10"
+            value={packets}
+            onChange={(e) => setPackets(e.target.value)}
+          />
+          </Content>
+        </Row>
+
+        <Row>
+          <Label>Scan Time</Label>
+          <Content>
+          <Input
+            type="number"
+            min="3"
+            value={scanTime}
+            onChange={(e) => setScanTime(e.target.value)}
+          />
+          </Content>
+        </Row>
+
+        {hasChanges && (
+          <Row>
+            <Label>Actions</Label>
+            <Content>
+              <Button onClick={handleApply}>Apply</Button>
+            </Content>
+          </Row>
+        )}
       </SettingsGrid>
     </SettingsWrapper>
   );

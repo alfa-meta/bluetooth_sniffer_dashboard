@@ -31,7 +31,7 @@ if __name__ == "__main__":
     interfaces = [] ##get_tshark_interfaces()
     interface_found = check_for_nrf_sniffer(interfaces=interfaces, sniffer_mode=sniffer_mode)
     todays_date = str(get_current_date())
-    sniffer = Sniffer(number_of_packets=100, user_data=user_data, device_data=device_data, sniffer_mode=sniffer_mode)
+    sniffer = Sniffer(number_of_packets=100, scan_time=15, user_data=user_data, device_data=device_data, sniffer_mode=sniffer_mode)
 
     if interface_found:
         # create_todays_directory()

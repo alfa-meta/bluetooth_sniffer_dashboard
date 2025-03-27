@@ -11,13 +11,13 @@ sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
 
 class Sniffer():
-    def __init__(self, number_of_packets: int, user_data: list, device_data: list, sniffer_mode="tshark"):
+    def __init__(self, number_of_packets: int, scan_time: int, user_data: list, device_data: list, sniffer_mode="tshark"):
         print("Initialising Sniffer Object")
         self.number_of_packets = str(number_of_packets)
+        self.scan_time: int = scan_time
         self.last_check = datetime.now()
         self.user_data: list = user_data
         self.device_data: list = device_data
-        self.scan_time: int = 15
         self.sniffer_mode: str = sniffer_mode
 
         print(f"{len(user_data)} users found in the Database")
