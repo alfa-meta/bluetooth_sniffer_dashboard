@@ -78,19 +78,21 @@ const Dashboard: React.FC = () => {
         {/* <Titlebar title={title} /> */}
         <ContentWrapper>
           <ContentContainer>
-            {title === "Scanner" ? (
-              <Scanner />
-            ) : title === "Logs" ? (
-              <Logs />
-            ) : title === "Devices" ? (
-              <Devices />
-            ) : title === "Settings" ? (
-              <Settings />
-            ) : title === "Admin" ? (
-              <Admin />
-            ) : (
-              <p>Dashboard</p>
-            )}
+          {title === "Scanner" ? (
+            <Scanner />
+          ) : title === "Logs" ? (
+            <Logs />
+          ) : title === "Devices" ? (
+            <Devices />
+          ) : title === "Settings" ? (
+            <Settings />
+          ) : title === "Admin" ? (
+            <Admin />
+          ) : (
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%" }}>
+              <p>Welcome, to the Bluetooth Dashboard!</p>
+            </div>
+          )}
           </ContentContainer>
         </ContentWrapper>
       </MainContent>

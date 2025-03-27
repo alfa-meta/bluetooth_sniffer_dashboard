@@ -25,7 +25,7 @@ const SettingsGrid = styled.div`
 
 const Row = styled.div`
   grid-column: span 2;
-  background-color: #1e1e1e;
+  background-color: var(--bg-light);
   padding: 10px;
   border-radius: 8px;
   display: grid;
@@ -33,6 +33,7 @@ const Row = styled.div`
   align-items: center;
   gap: 10px;
 `;
+
 
 const Label = styled.div`
   font-size: 18px;
@@ -70,8 +71,8 @@ const Input = styled.input`
   padding: 6px 10px;
   border-radius: 4px;
   border: 1px solid #ccc;
-  background: #2b2b2b;
-  color: white;
+  background: var(--bg-light);
+  color: var(--text-light);
 `;
 
 const Button = styled.button`
