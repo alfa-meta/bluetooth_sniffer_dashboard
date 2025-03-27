@@ -324,7 +324,7 @@ def process_monitor(user_email, process, stop_event, sid):
         stop_event.set()  # Make sure the event is set
 
 @socketio.on("websocket_start_scan")
-def websocket_start_scan():
+def websocket_start_scan(data):
     try:
         token = request.args.get("token")
         sid = request.sid
@@ -335,8 +335,15 @@ def websocket_start_scan():
 
         decoded_token = decode_token(token)
         user_email = decoded_token.get("sub")
-        
-        # Stop any existing process for this user
+
+        # Extract settings from client
+        packets = data.get("packets", "100")
+        scan_time = data.get("scanTime", "15")
+        theme = data.get("theme", "")
+
+        print(f"Received settings from {user_email}: packets={packets}, scanTime={scan_time}, theme={theme}")
+
+        # Stop any existing process
         if user_email in processes and processes[user_email].poll() is None:
             try:
                 old_process = processes[user_email]
@@ -345,34 +352,32 @@ def websocket_start_scan():
                 print(f"Terminated existing process for {user_email}")
             except Exception as e:
                 print(f"Error terminating process: {e}")
-        
-        # Create a new stop event for this process
+
         stop_event = threading.Event()
-        
-        # Start the process
+
+        # You can pass these as env vars or args if needed by your script
         process = subprocess.Popen(
-            ["python3", "-u", "sniffer/main.py"],
+            ["python3", "-u", "sniffer/main.py", packets, scan_time],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
-            text=False,  # We'll handle decoding manually
-            bufsize=0    # Unbuffered
+            text=False,
+            bufsize=0
         )
-        
+
         processes[user_email] = process
         emit("scan_update", {"message": f"Started scanning process (PID: {process.pid})"})
         print(f"Started scanning process (PID: {process.pid}) for {user_email}")
-        
-        # Start monitoring thread
+
         monitor_thread = socketio.start_background_task(
-            process_monitor, 
-            user_email=user_email, 
-            process=process, 
+            process_monitor,
+            user_email=user_email,
+            process=process,
             stop_event=stop_event,
             sid=sid
         )
-        
+
         process_threads[user_email] = (monitor_thread, stop_event)
-        
+
     except Exception as e:
         print(f"Error in websocket_start_scan: {e}")
         emit("scan_update", {"message": f"Error starting scan: {str(e)}"})

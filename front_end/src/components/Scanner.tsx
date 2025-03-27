@@ -261,16 +261,23 @@ const Scanner: React.FC = () => {
 
   const toggleScanning = () => {
     if (!socket) return;
-
+  
     if (!scanning) {
-      socket.emit("websocket_start_scan");
-      addLogMessage("Scanning started...");
+      const settings = {
+        theme: localStorage.getItem("theme") || "",
+        packets: localStorage.getItem("packets") || "100",
+        scanTime: localStorage.getItem("scanTime") || "15",
+      };
+  
+      socket.emit("websocket_start_scan", settings);
+      addLogMessage("Scanning started with settings: " + JSON.stringify(settings));
     } else {
       socket.emit("websocket_stop_scan");
       addLogMessage("Scanning stopped.");
     }
     setScanning(!scanning);
   };
+  
 
   const clearLogs = () => {
     setLogMessages([]);

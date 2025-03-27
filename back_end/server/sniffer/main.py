@@ -3,7 +3,7 @@ from outputs import *
 from sniffer import Sniffer
 from db import fetch_all_users, fetch_all_devices
 import math
-
+import sys
 
 todays_date = ""
 tx_power_dict: dict = {}
@@ -23,19 +23,34 @@ def estimate_tx_power(rssi, distance):
     tx_power = rssi + (10 * n * math.log10(distance))
     return tx_power
 
+# Default values
+DEFAULT_PACKETS = 100
+DEFAULT_SCAN_TIME = 15
+
 if __name__ == "__main__":
-    ## Make sure database exists before running this code
     sniffer_mode = "bluetoothctl"
     user_data = fetch_all_users()
     device_data = fetch_all_devices()
-    interfaces = [] ##get_tshark_interfaces()
+    interfaces = []  # get_tshark_interfaces()
     interface_found = check_for_nrf_sniffer(interfaces=interfaces, sniffer_mode=sniffer_mode)
     todays_date = str(get_current_date())
-    sniffer = Sniffer(number_of_packets=100, scan_time=15, user_data=user_data, device_data=device_data, sniffer_mode=sniffer_mode)
+
+    # Read from arguments or use defaults
+    try:
+        packets = int(sys.argv[1])
+        scan_time = int(sys.argv[2])
+    except (IndexError, ValueError):
+        packets = DEFAULT_PACKETS
+        scan_time = DEFAULT_SCAN_TIME
+
+    print(f"Sniffer received {packets} packets, and {scan_time} scan_time in seconds")
+
+    sniffer = Sniffer(number_of_packets=packets, scan_time=scan_time,
+                      user_data=user_data, device_data=device_data,
+                      sniffer_mode=sniffer_mode)
 
     if interface_found:
-        # create_todays_directory()
-        sniffer.output_source_addresses(f"outputs\\{todays_date}\\{todays_date}"+".json")  
+        sniffer.output_source_addresses(f"outputs\\{todays_date}\\{todays_date}.json")
     else:
         print("nRF Sniffer for Bluetooth LE was not found!")
         print("Exiting program!")
