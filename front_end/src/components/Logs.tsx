@@ -58,8 +58,8 @@ const SearchInput = styled.input`
 
 const ButtonContainer = styled.div`
   display: flex;
-  gap: 10px;
-  margin-top: 10px;
+  gap: 15px;
+  margin-top: 25px;
 `;
 
 const Button = styled.button`
@@ -287,8 +287,8 @@ const Logs: React.FC = () => {
                   <Td>{log.mac_address}</Td>
                   <Td>{log.device_vendor}</Td>
                   <Td>{String(log.target_device)}</Td>
-                  <Td>{new Date(log.first_seen).toLocaleString()}</Td>
-                  <Td>{new Date(log.last_seen).toLocaleString()}</Td>
+                  <Td>{new Date(parseInt(log.first_seen) * 1000).toLocaleString()}</Td>
+                  <Td>{new Date(parseInt(log.last_seen) * 1000).toLocaleString()}</Td>
                   <Td>{log.count}</Td>
                   <Td>{log.scan_number}</Td>
                 </tr>
