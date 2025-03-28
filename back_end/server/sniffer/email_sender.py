@@ -11,14 +11,17 @@ def import_json_file(path: str):
     return data
 
 
-def send_email(text: str):
+def send_email(text: str, email=None):
     ## TODO make it work with multiple emails
 
     data = import_json_file(path='config.json')
     # Email details
     # Extract username and password
     sender_email = data.get('username')
-    receiver_email = data.get('receiver')
+    if email == None:
+        receiver_email = data.get('receiver')
+    else:
+        receiver_email = email
     password = data.get('password')
     websocket = data.get('websocket_connected')
 
@@ -43,6 +46,6 @@ def send_email(text: str):
             server.starttls()
             server.login(sender_email, password)
             server.sendmail(sender_email, receiver_email, msg.as_string())
-        print("Email sent successfully!")
+        print(f"Email sent to {receiver_email} successfully!")
     except Exception as e:
         print(f"Error: {e}")

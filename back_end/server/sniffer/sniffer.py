@@ -170,26 +170,26 @@ class Sniffer():
             }
             formatted_devices_list.append(current_device)
         
+        from collections import defaultdict
+
         # Optionally check if this scanned device is in known devices
+        email_device_map = defaultdict(list)
         for mac, name in scanned_devices.items():
             for device in self.device_data:
                 if device['mac_address'].lower() == mac:
-                    matched_devices.append({
+                    email_device_map[device['email']].append({
                         "mac_address": mac,
                         "device_name": device['device_name'],
                         "timestamp": time.time()
                     })
 
-
-        # Log and optionally email matched devices
-        if matched_devices:
-            print("Matched devices found:")
-            for match in matched_devices:
-                print(f"MAC: {match['mac_address']}, "
-                    f"Known Name: {match['device_name']}, ")
-            send_email(f"Matched Addresses:\n{matched_devices}")
-        else:
-            print("No matched devices found.")
+        for email, devices in email_device_map.items():
+            message = "Matched Devices:\n"
+            for d in devices:
+                message += f"- {d['device_name']} ({d['mac_address']}) at {time.ctime(d['timestamp'])}\n"
+            
+            print(message)
+            send_email(text=message, email=email)
         
         update_logs(device_list=formatted_devices_list)
 

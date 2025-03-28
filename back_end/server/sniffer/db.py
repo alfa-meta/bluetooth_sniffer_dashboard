@@ -203,7 +203,6 @@ def fetch_all_users():
 
     if users:
         for user in users:
-            print(user)
             user_list.append({
                 "uid": user[0],
                 "username": user[1],

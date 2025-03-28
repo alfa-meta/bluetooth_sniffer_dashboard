@@ -54,6 +54,7 @@ const AuthPage: React.FC = () => {
       if (response.ok) {
         setMessage("Success! Redirecting...");
         localStorage.setItem("token", data.access_token);
+        localStorage.setItem("email", data.email);
         setTimeout(() => navigate("/dashboard"), 1000);
       } else {
         setMessage(data.message || "An error occurred");

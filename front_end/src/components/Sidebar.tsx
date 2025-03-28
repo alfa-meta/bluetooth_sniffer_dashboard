@@ -113,6 +113,7 @@ const Sidebar: React.FC<{
         <LogoutButton
           onClick={() => {
             localStorage.removeItem("token");
+            localStorage.removeItem("email");
             navigate("/");
           }}
         >

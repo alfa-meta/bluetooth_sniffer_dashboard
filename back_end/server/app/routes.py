@@ -42,7 +42,7 @@ def register():
         db.session.commit()
         
         access_token = create_access_token(identity=user.email)
-        return jsonify(access_token=access_token), 200
+        return jsonify(access_token=access_token, email=user.email), 200
     except Exception as e:
         print("Error in register:", e)
         return jsonify({"message": "An error occurred, please try again later"}), 500
@@ -59,7 +59,7 @@ def login():
 
         if user and bcrypt.check_password_hash(user.password, data["password"] + PASSWORD_SALT):
             access_token = create_access_token(identity=user.email)
-            return jsonify(access_token=access_token), 200
+            return jsonify(access_token=access_token, email=user.email), 200
 
         return jsonify({"message": "Invalid credentials"}), 401
     except Exception as e:
@@ -357,7 +357,7 @@ def websocket_start_scan(data):
 
         # You can pass these as env vars or args if needed by your script
         process = subprocess.Popen(
-            ["python3", "-u", "sniffer/main.py", packets, scan_time],
+            ["python3", "-u", "sniffer/main.py", user_email, packets, scan_time],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=False,

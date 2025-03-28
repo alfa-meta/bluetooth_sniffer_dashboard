@@ -267,10 +267,10 @@ const Scanner: React.FC = () => {
         theme: localStorage.getItem("theme") || "",
         packets: localStorage.getItem("packets") || "100",
         scanTime: localStorage.getItem("scanTime") || "15",
+        email: localStorage.getItem("email")
       };
   
       socket.emit("websocket_start_scan", settings);
-      addLogMessage("Scanning started with settings: " + JSON.stringify(settings));
     } else {
       socket.emit("websocket_stop_scan");
       addLogMessage("Scanning stopped.");
