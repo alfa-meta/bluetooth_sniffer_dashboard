@@ -63,7 +63,6 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    const email = localStorage.getItem("email");
 
     if (!token) {
       localStorage.removeItem("token");

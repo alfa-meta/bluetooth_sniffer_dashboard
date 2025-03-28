@@ -30,7 +30,7 @@ def send_email(text: str, email=None):
 
 
     subject = "Bluetooth Deanonimyser Notification"
-    body = f"Target user is within the vicinity.\n\n{text} \n\n\nBluetooth Deanonimyser Notification via Bluetooth Sniffer"
+    body = f"Target device is within the vicinity.\n\n{text} \n\n\nBluetooth Deanonimyser Notification via Bluetooth Sniffer"
 
     # Create the email
     msg = MIMEMultipart()
