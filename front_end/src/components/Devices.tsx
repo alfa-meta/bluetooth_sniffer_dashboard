@@ -9,7 +9,7 @@ interface Device {
   mac_address: string;
   device_name: string;
   device_vendor: string;
-  last_seen: string;
+  date_added: string;
   email: string;
 }
 
@@ -230,8 +230,8 @@ const Devices: React.FC = () => {
         const res = a[sortConfig.key as keyof Device].localeCompare(b[sortConfig.key as keyof Device]);
         return sortConfig.direction === "asc" ? res : -res;
       }
-      if (sortConfig.key === "last_seen") {
-        const res = parseInt(a.last_seen) - parseInt(b.last_seen);
+      if (sortConfig.key === "date_added") {
+        const res = parseInt(a.date_added) - parseInt(b.date_added);
         return sortConfig.direction === "asc" ? res : -res;
       }
       return 0;
@@ -270,8 +270,8 @@ const Devices: React.FC = () => {
               <Th onClick={() => handleSort("device_name")}>
                 Device Name {sortConfig.key === "device_name" && (sortConfig.direction === "asc" ? "▲" : "▼")}
               </Th>
-              <Th onClick={() => handleSort("last_seen")}>
-                Last Seen {sortConfig.key === "last_seen" && (sortConfig.direction === "asc" ? "▲" : "▼")}
+              <Th onClick={() => handleSort("date_added")}>
+                Date Added {sortConfig.key === "date_added" && (sortConfig.direction === "asc" ? "▲" : "▼")}
               </Th>
               <Th onClick={() => handleSort("email")}>
                 User Email {sortConfig.key === "email" && (sortConfig.direction === "asc" ? "▲" : "▼")}
@@ -285,7 +285,7 @@ const Devices: React.FC = () => {
                 <Td>{device.mac_address}</Td>
                 <Td>{device.device_vendor}</Td>
                 <Td>{device.device_name}</Td>
-                <Td>{new Date(parseInt(device.last_seen) * 1000).toLocaleString()}</Td>
+                <Td>{new Date(parseInt(device.date_added) * 1000).toLocaleString()}</Td>
                 <Td>{device.email}</Td>
                 <Td>
                   <DeleteButton

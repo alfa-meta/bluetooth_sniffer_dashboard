@@ -19015,10 +19015,10 @@ Num    MAC        Vendor
 19011 - 00:16:a4 - Ezurio Ltd
 19012 - 00:18:f4 - EO TECHNICS Co., Ltd.
 19013 - 9c:2f:9d - Liteon Technology Corporation
-19014 - 9c:2f:9d - Liteon Technology Corporation
-19015 - 9c:2f:9d - Liteon Technology Corporation
+19014 - b0:d2:78 - Texas Instruments
+19015 - 5c:33:7b - Google, Inc.
 19016 - 9c:2f:9d - Liteon Technology Corporation
-19017 - b0:d2:78 - Texas Instruments
+19017 - cc:d3:c1 - Vestel Elektronik San ve Tic. A.S.
 
 Wireless MACs:
 Num    MAC        Vendor

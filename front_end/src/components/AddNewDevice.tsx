@@ -15,6 +15,7 @@ const AddNewDevice: React.FC<AddNewDeviceProps> = ({ setIsAdding, fetchDevices }
     email: "",
   });
   const [message, setMessage] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
 
@@ -27,13 +28,20 @@ const AddNewDevice: React.FC<AddNewDeviceProps> = ({ setIsAdding, fetchDevices }
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    if (!token) {
+      setError("No token found, please login");
+      localStorage.removeItem("token");
+      navigate("/");
+      return;
+    }
+    
     e.preventDefault();
     setMessage("Adding device...");
 
     try {
       await axios.post(
         "http://127.0.0.1:5000/add_device",
-        { ...formData, last_seen: Math.floor(Date.now() / 1000).toString() },
+        { ...formData, date_added: Math.floor(Date.now() / 1000).toString() },
         {
           headers: {
             Authorization: `Bearer ${token}`,

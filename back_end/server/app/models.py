@@ -15,7 +15,7 @@ class Device(db.Model):
     mac_address = db.Column(db.String, primary_key=True)
     device_vendor = db.Column(db.String, nullable=False, default='Unknown')
     device_name = db.Column(db.String, nullable=False)
-    last_seen = db.Column(db.Integer, nullable=False)
+    date_added = db.Column(db.Integer, nullable=False)
     email = db.Column(db.String, db.ForeignKey('user.email'), nullable=False)
 
 class Logs(db.Model):

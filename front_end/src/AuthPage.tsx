@@ -28,7 +28,7 @@ const AuthPage: React.FC = () => {
     e.preventDefault();
     setMessage("Processing...");
 
-    const salt = "$2a$10$abcdefghijklmnopqrstuv";
+    const salt = "$2b$10$gDh9lGmNuJkqR3kRyZVz4.TaX2Rj7KHKkq8w6KH3F.kFoCZrk0oUq";
     const hashedPassword = bcrypt.hashSync(formData.password, salt);
 
     const endpoint = isLogin

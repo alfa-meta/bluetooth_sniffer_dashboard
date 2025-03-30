@@ -38,7 +38,7 @@ def create_tables():
         mac_address TEXT PRIMARY KEY,
         device_vendor TEXT,
         device_name TEXT NOT NULL,
-        last_seen INTEGER NOT NULL,
+        date_added INTEGER NOT NULL,
         email TEXT NOT NULL,
         FOREIGN KEY (email) REFERENCES user(email)
     )
@@ -72,17 +72,17 @@ def create_tables():
 
 ###### Device ###########
 
-def create_device(mac_address: str, device_vendor: str, device_name: str, last_seen: int, email: str):
+def create_device(mac_address: str, device_vendor: str, device_name: str, date_added: int, email: str):
     conn = connect_db()
     cursor = conn.cursor()
     
     try:
-        cursor.execute('''INSERT INTO device (mac_address, device_vendor, device_name, last_seen, email)
+        cursor.execute('''INSERT INTO device (mac_address, device_vendor, device_name, date_added, email)
                           VALUES (?, ?, ?, ?, ?)''',
-                       (mac_address, device_vendor, device_name, last_seen, email))
+                       (mac_address, device_vendor, device_name, date_added, email))
         conn.commit()
         print(f"Device with MAC Address {mac_address} added successfully.")
-        print(mac_address, device_vendor, device_name, last_seen, email)
+        print(mac_address, device_vendor, device_name, date_added, email)
     except sqlite3.IntegrityError as e:
         if "FOREIGN KEY constraint failed" in str(e):
             print(f"Error: The email '{email}' does not exist in the Users table.")
@@ -92,7 +92,7 @@ def create_device(mac_address: str, device_vendor: str, device_name: str, last_s
         conn.close()
 
 
-def update_device(mac_address: str, device_vendor=None, device_name=None, last_seen=None, email=None):
+def update_device(mac_address: str, device_vendor=None, device_name=None, date_added=None, email=None):
     conn = connect_db()
     cursor = conn.cursor()
     
@@ -105,9 +105,9 @@ def update_device(mac_address: str, device_vendor=None, device_name=None, last_s
     if device_name is not None:
         fields.append("device_name = ?")
         values.append(device_name)
-    if last_seen is not None:
-        fields.append("last_seen = ?")
-        values.append(last_seen)
+    if date_added is not None:
+        fields.append("date_added = ?")
+        values.append(date_added)
     if email is not None:
         fields.append("email = ?")
         values.append(email)
@@ -162,7 +162,7 @@ def fetch_all_devices():
                 "mac_address": device[0],
                 "device_vendor": device[1],
                 "device_name": device[2],
-                "last_seen": device[3],
+                "date_added": device[3],
                 "email": device[4]
             })
 

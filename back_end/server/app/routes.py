@@ -116,7 +116,7 @@ def delete_user(user_id):
 def get_all_devices():
     try:
         devices = Device.query.all()
-        device_list = [{"mac_address": d.mac_address, "device_vendor": d.device_vendor, "device_name": d.device_name, "last_seen": d.last_seen, "email": d.email} for d in devices]
+        device_list = [{"mac_address": d.mac_address, "device_vendor": d.device_vendor, "device_name": d.device_name, "date_added": d.date_added, "email": d.email} for d in devices]
         return jsonify(device_list), 200
     except Exception as e:
         print(f"Error in get_all_devices: {e}")
@@ -181,10 +181,10 @@ def add_device():
         mac_address = data.get("mac_address")
         device_vendor = "Unknown"
         device_name = data.get("device_name")
-        last_seen = data.get("last_seen")
+        date_added = data.get("date_added")
         email = data.get("email")
 
-        if not all([mac_address, device_name, device_vendor, last_seen, email]):
+        if not all([mac_address, device_name, device_vendor, date_added, email]):
             return jsonify({"message": "Missing required fields"}), 400
 
         # Check DeviceVendor table row count
@@ -205,7 +205,7 @@ def add_device():
             mac_address=mac_address,
             device_name=device_name,
             device_vendor=device_vendor,
-            last_seen=last_seen,
+            date_added=date_added,
             email=email
         )
 

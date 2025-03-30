@@ -1,4 +1,5 @@
 from dotenv import load_dotenv
+from datetime import timedelta
 import os
 
 load_dotenv()
@@ -14,4 +15,5 @@ class Config:
     SQLALCHEMY_DATABASE_URI = f'sqlite:///{db_path}'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=30)
     PASSWORD_SALT = os.getenv("PASSWORD_SALT")
