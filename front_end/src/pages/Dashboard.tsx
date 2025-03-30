@@ -58,7 +58,7 @@ const ContentContainer = styled.div`
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const [title, setTitle] = useState("Bluetooth Deanonimyser Dashboard");
+  const [title, setTitle] = useState("Bluetooth Sniffer Dashboard");
   const [isSidebarHidden, setIsSidebarHidden] = useState(false);
 
   useEffect(() => {

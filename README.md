@@ -1,8 +1,8 @@
-# BLE Deanonymiser
+# Bluetooh Sniffer Dashboard
 
 ## Overview
 
-BLE Deanonymiser is a tool designed to analyze and deanonymize Bluetooth Low Energy (BLE) devices by extracting and processing relevant data. It helps security researchers and developers understand BLE device behaviours.
+Bluetooh Sniffer Dashboard is a tool designed to analyze and identify Bluetooth Low Energy (BLE) devices by extracting and processing relevant data. It helps security researchers and developers understand BLE device and user behaviours.
 
 ## Features
 
@@ -12,6 +12,8 @@ BLE Deanonymiser is a tool designed to analyze and deanonymize Bluetooth Low Ene
 - Frontend interface for visualization
 
 ## Installation
+
+- ** NOTE: Linux ONLY as of 30/03/2025
 
 ### Prerequisites
 
@@ -23,17 +25,21 @@ BLE Deanonymiser is a tool designed to analyze and deanonymize Bluetooth Low Ene
 
 1. **Clone the repository:**
    ```sh
-   git clone https://github.com/your-repo/ble-deanonymiser.git
-   cd ble-deanonymiser
+   git clone https://github.com/alfa-meta/bluetooth_sniffer_dashboard.git
+   cd bluetooth_sniffer_dashboard
    ```
 2. **Install frontend dependencies:**
    ```sh
    cd front_end
    npm install
    ```
-3. **Install backend dependencies (if applicable):**
+3. **Install backend dependencies:**
    ```sh
    cd ../backend
+   python3 -m venv venv
+   source venv/bin/activate ## Linux & Mac
+   .\\venv\\Scripts\\Activate.ps1 # Windows Powershell
+   venv\\Scripts\\activate # Windows Command-line
    pip install -r requirements.txt
    ```
 
@@ -60,8 +66,4 @@ Feel free to submit issues and pull requests to improve the project.
 ## License
 
 This project is licensed under the **MIT License**.
-
-## Contact
-
-For any questions, reach out at **[your-email@example.com]**.
 

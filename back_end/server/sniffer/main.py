@@ -37,8 +37,8 @@ if __name__ == "__main__":
 
     # Read from arguments or use defaults
     try:
-        packets = int(sys.argv[1])
-        scan_time = int(sys.argv[2])
+        packets = int(sys.argv[2])
+        scan_time = int(sys.argv[3])
     except (IndexError, ValueError):
         packets = DEFAULT_PACKETS
         scan_time = DEFAULT_SCAN_TIME

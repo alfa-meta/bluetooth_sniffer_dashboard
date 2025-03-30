@@ -1,6 +1,6 @@
 {
-  "short_name": "BL Deanonimyser App",
-  "name": "Bluetooth Deanonimyser Alert Application",
+  "short_name": "Bluetooth Sniffer Dashboard App",
+  "name": "Bluetooth Sniffer Dashboard Alert Application",
   "icons": [
     {
       "src": "favicon.ico",
@@ -8,7 +8,7 @@
       "type": "image/x-icon"
     },
     {
-      "src": "ble_deanonymiser_icon",
+      "src": "bluetooth_sniffer_icon",
       "type": "image/png",
       "sizes": "192x192"
     },

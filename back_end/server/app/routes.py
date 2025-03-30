@@ -136,39 +136,6 @@ def delete_device(mac_address):
     except Exception as e:
         print(f"Error in delete_device: {e}")
         return jsonify({"message": "An error occurred, please try again later"}), 500
-
-
-# @main_bp.route("/add_device", methods=["POST"])
-# @jwt_required()
-# def add_device():
-#     try:
-#         data = request.get_json()
- 
-#         if not data:
-#             return jsonify({"message": "No data provided"}), 400
- 
-#         mac_address = data.get("mac_address")
-#         device_name = data.get("device_name")
-#         last_seen = data.get("last_seen")
-#         email = data.get("email")
-
-#         if not all([mac_address, device_name, last_seen, email]):
-#             return jsonify({"message": "Missing required fields"}), 400
- 
-#         new_device = Device(
-#             mac_address=mac_address,
-#             device_name=device_name,
-#             last_seen=last_seen,
-#             email=email
-#         )
-
-#         db.session.add(new_device)
-#         db.session.commit()
-
-#         return jsonify({"message": "Device added successfully"}), 201
-#     except Exception as e:
-#         print("Error:", e)
-#         return jsonify({"message": "An error occurred, please try again later"}), 500
     
 @main_bp.route("/add_device", methods=["POST"])
 @jwt_required()
@@ -420,7 +387,7 @@ def websocket_stop_scan():
         emit("scan_update", {"message": f"Error stopping scan: {str(e)}"})
 
 @socketio.on("websocket_handle_disconnect")
-def websocket_handle_disconnect():
+def websocket_handle_disconnect(data=None):
     try:
         token = request.args.get("token")  # Extract token from query params
         if not token:
@@ -431,6 +398,8 @@ def websocket_handle_disconnect():
         user_email = decoded_token.get("sub")  # Extract user identity
 
         print(f"{user_email} is Disconnecting")
+        if data is not None:
+            print(data)
         
         if user_email in process_threads:
             _, stop_event = process_threads[user_email]

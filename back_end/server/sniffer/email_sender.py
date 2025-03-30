@@ -29,8 +29,8 @@ def send_email(text: str, email=None):
         raise ValueError("Websocket was closed in email sender")
 
 
-    subject = "Bluetooth Deanonimyser Notification"
-    body = f"Target device is within the vicinity.\n\n{text} \n\n\nBluetooth Deanonimyser Notification via Bluetooth Sniffer"
+    subject = "Bluetooth Sniffer Dashboard Notification"
+    body = f"Target device is within the vicinity.\n\n{text} \n\n\nBluetooth Sniffer Dashboard Notification via Bluetooth Sniffer"
 
     # Create the email
     msg = MIMEMultipart()

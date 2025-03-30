@@ -104,7 +104,7 @@ const Sidebar: React.FC<{
         {isHidden ? <FaArrowRight /> : <FaArrowLeft />}
       </ToggleButton>
       <ContentWrapper isHidden={isHidden}>
-        <h2>Deanonimyser Dashboard</h2>
+        <h2>Bluetooth Sniffer Dashboard</h2>
         {pages.map((page, index) => (
           <SideBarItem key={index} onClick={() => setTitle(page)}>
             {page}

@@ -69,7 +69,7 @@ const AuthPage: React.FC = () => {
     <div className="auth-container">
       <div className="auth-box">
         <img
-          src="/ble_deanonymiser_icon.png"
+          src="/bluetooth_sniffer_icon.png"
           alt="App Icon"
           className="auth-icon"
         />
