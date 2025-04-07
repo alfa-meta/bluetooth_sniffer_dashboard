@@ -387,7 +387,7 @@ def websocket_stop_scan():
         emit("scan_update", {"message": f"Error stopping scan: {str(e)}"})
 
 @socketio.on("websocket_handle_disconnect")
-def websocket_handle_disconnect(data=None):
+def websocket_handle_disconnect(reason_for_disconnect=None):
     try:
         token = request.args.get("token")  # Extract token from query params
         if not token:
@@ -398,8 +398,8 @@ def websocket_handle_disconnect(data=None):
         user_email = decoded_token.get("sub")  # Extract user identity
 
         print(f"{user_email} is Disconnecting")
-        if data is not None:
-            print(data)
+        if reason_for_disconnect is not None:
+            print(reason_for_disconnect)
         
         if user_email in process_threads:
             _, stop_event = process_threads[user_email]
