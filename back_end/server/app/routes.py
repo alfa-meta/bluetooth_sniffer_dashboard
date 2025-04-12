@@ -214,7 +214,6 @@ def get_all_logs():
 def websocket_handle_connect():
     token = request.args.get("token")  # Extract token from query params
     if not token:
-        set_websocket_connected(path="config.json", value=False)
         print("Missing token, disconnecting WebSocket.")
         disconnect()
         return
@@ -223,13 +222,10 @@ def websocket_handle_connect():
         decoded_token = decode_token(token)  # Manually decode the JWT token
         user_email = decoded_token.get("sub")  # Extract user identity
         if not user_email:
-            set_websocket_connected(path="config.json", value=False)
             raise ValueError("Invalid token payload")
 
-        set_websocket_connected(path="config.json", value=True)
         print(f"User {user_email} connected via WebSocket")
     except Exception as e:
-        set_websocket_connected(path="config.json", value=False)
         print(f"WebSocket connection error: {e}")
         disconnect()
 
@@ -418,8 +414,6 @@ def websocket_handle_disconnect(reason_for_disconnect=None):
                 print(f"Stopped process {process.pid}")
             del processes[user_email]
             
-        set_websocket_connected(path="config.json", value=False)
         
     except Exception as e:
-        set_websocket_connected(path="config.json", value=False)
         print(f"Error in handle_disconnect: {e}")

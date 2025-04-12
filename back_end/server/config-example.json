@@ -1,7 +1,5 @@
 {
     "receiver":"target@email.com",
     "username":"your_email@email.com",
-    "password":"your_app_password",
-    "websocket_connected": false,
-    "scanning": false
+    "password":"your_app_password"
 }

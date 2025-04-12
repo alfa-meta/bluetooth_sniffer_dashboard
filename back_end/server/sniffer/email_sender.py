@@ -23,10 +23,6 @@ def send_email(text: str, email=None):
     else:
         receiver_email = email
     password = data.get('password')
-    websocket = data.get('websocket_connected')
-
-    if websocket == False:
-        raise ValueError("Websocket was closed in email sender")
 
 
     subject = "Bluetooth Sniffer Dashboard Notification"
