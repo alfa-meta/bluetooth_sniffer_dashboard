@@ -154,9 +154,9 @@ class Sniffer():
         for line in lines:
             if "Device" in line:
                 parts = line.split()
-                if len(parts) >= 5:
-                    mac_address = parts[3].strip()
-                    device_name = " ".join(parts[4:]).strip()
+                if len(parts) >= 4:
+                    mac_address = parts[2].strip()
+                    device_name = " ".join(parts[3:]).strip()
                     scanned_devices[mac_address.lower()] = device_name
                     print(mac_address)
 
