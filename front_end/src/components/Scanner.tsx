@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { useWebSocket } from "../functions/WebSocketContext";
@@ -75,41 +75,10 @@ const TerminalBox = styled.div`
   }
 `;
 
-interface ScanResponse {
-  message: string;
-  pid?: number;
-}
-
-const LOG_MESSAGES_STORAGE_KEY = "scanner_log_messages";
-const SCANNING_STATUS_STORAGE_KEY = "scanner_scanning_status";
-
 const Scanner: React.FC = () => {
-  const { socket, connected } = useWebSocket();
+  const { socket, connected, logMessages, scanning, setScanning, setLogMessages } = useWebSocket();
   const navigate = useNavigate();
   const terminalRef = useRef<HTMLDivElement>(null);
-
-  const [scanning, setScanning] = useState<boolean>(() => {
-    const saved = localStorage.getItem(SCANNING_STATUS_STORAGE_KEY);
-    return saved ? JSON.parse(saved) : false;
-  });
-
-  const [logMessages, setLogMessages] = useState<string[]>(() => {
-    const saved = localStorage.getItem(LOG_MESSAGES_STORAGE_KEY);
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  const addLogMessage = (msg: string) => {
-    const timestamp = new Date().toLocaleString();
-    setLogMessages((prev) => [...prev, `${timestamp} - ${msg}`]);
-  };
-
-  useEffect(() => {
-    localStorage.setItem(LOG_MESSAGES_STORAGE_KEY, JSON.stringify(logMessages));
-  }, [logMessages]);
-
-  useEffect(() => {
-    localStorage.setItem(SCANNING_STATUS_STORAGE_KEY, JSON.stringify(scanning));
-  }, [scanning]);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -136,30 +105,6 @@ const Scanner: React.FC = () => {
   }, [navigate]);
 
   useEffect(() => {
-    if (!socket) return;
-
-    const handleScanUpdate = (data: ScanResponse) => {
-      addLogMessage(data.message);
-      setScanning(true);
-    };
-    const handleScanStop = () => setScanning(false);
-    const handleScanError = (error: any) => {
-      addLogMessage(`Error: ${error.message}`);
-      setScanning(false);
-    };
-
-    socket.on("scan_update", handleScanUpdate);
-    socket.on("scan_stop", handleScanStop);
-    socket.on("scan_error", handleScanError);
-
-    return () => {
-      socket.off("scan_update", handleScanUpdate);
-      socket.off("scan_stop", handleScanStop);
-      socket.off("scan_error", handleScanError);
-    };
-  }, [socket]);
-
-  useEffect(() => {
     if (terminalRef.current) {
       terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
     }
@@ -178,9 +123,10 @@ const Scanner: React.FC = () => {
       socket.emit("websocket_start_scan", settings);
     } else {
       socket.emit("websocket_stop_scan");
-      addLogMessage("Scanning stopped.");
+      const timestamp = new Date().toLocaleString();
+      setLogMessages((prev) => [...prev, `${timestamp} - Scanning stopped.`]);
+      setScanning(false);
     }
-    setScanning(!scanning);
   };
 
   const clearLogs = () => setLogMessages([]);

@@ -4,6 +4,7 @@ from flask_bcrypt import Bcrypt
 from flask_socketio import emit, disconnect
 import threading
 import subprocess
+from datetime import datetime
 
 from config import Config
 from .models import Device, User, Logs, DeviceVendor, db
@@ -23,6 +24,14 @@ stop_scan_event = threading.Event()
 
 if not Config.PASSWORD_SALT or not Config.JWT_SECRET_KEY:
     raise ValueError(f"Environment variables PASSWORD_SALT is {PASSWORD_SALT} JWT_SECRET_KEY is {Config.JWT_SECRET_KEY} must be set.")
+
+def is_token_expired(decoded_token):
+    exp_timestamp = decoded_token.get("exp")
+    if exp_timestamp is None:
+        return True
+    current_time = datetime.utcnow().timestamp()
+    return current_time > exp_timestamp
+
 
 
 @main_bp.route("/register", methods=["POST"])
@@ -220,7 +229,13 @@ def websocket_handle_connect():
 
     try:
         decoded_token = decode_token(token)  # Manually decode the JWT token
-        user_email = decoded_token.get("sub")  # Extract user identity
+
+        if is_token_expired(decoded_token):
+            emit("token_expired")
+            disconnect()
+            return
+
+        user_email = decoded_token.get("sub")
         if not user_email:
             raise ValueError("Invalid token payload")
 
@@ -228,6 +243,7 @@ def websocket_handle_connect():
     except Exception as e:
         print(f"WebSocket connection error: {e}")
         disconnect()
+
 
 def process_monitor(user_email, process, stop_event, sid):
     """Background thread function to monitor process output"""
@@ -297,6 +313,12 @@ def websocket_start_scan(data):
             return
 
         decoded_token = decode_token(token)
+
+        if is_token_expired(decoded_token):
+            emit("token_expired")
+            disconnect()
+            return
+
         user_email = decoded_token.get("sub")
 
         # Extract settings from client
@@ -352,35 +374,41 @@ def websocket_stop_scan():
         if not token:
             emit("scan_update", {"message": "Error: Missing token"})
             return
-        
-        decoded_token = decode_token(token)
-        user_email = decoded_token.get("sub")
-        
+
+        try:
+            decoded_token = decode_token(token)
+            user_email = decoded_token.get("sub")
+        except Exception as e:
+            print(f"Token decode error: {e}")
+            emit("token_expired")
+            disconnect()
+            return
+
         if user_email in process_threads:
             _, stop_event = process_threads[user_email]
             stop_event.set()
             emit("scan_update", {"message": "Stopping scan process..."})
-            print(f"Stop event set for {user_email}")
-        
+
         if user_email in processes:
             process = processes[user_email]
-            if process.poll() is None:  # Check if process is still running
+            if process.poll() is None:
                 process.terminate()
                 try:
                     process.wait(timeout=5)
                 except subprocess.TimeoutExpired:
                     process.kill()
                     process.wait()
-                print(f"Stopped process {process.pid} for {user_email}")
                 emit("scan_update", {"message": f"Scan process terminated (PID: {process.pid})"})
             else:
                 emit("scan_update", {"message": f"Process already completed (PID: {process.pid})"})
         else:
             emit("scan_update", {"message": "No active scanning process found"})
-            
+            emit("scan_stop", {"message": f"Set scan status to false."})
+
     except Exception as e:
         print(f"Error in websocket_stop_scan: {e}")
         emit("scan_update", {"message": f"Error stopping scan: {str(e)}"})
+
 
 @socketio.on("websocket_handle_disconnect")
 def websocket_handle_disconnect(reason_for_disconnect=None):

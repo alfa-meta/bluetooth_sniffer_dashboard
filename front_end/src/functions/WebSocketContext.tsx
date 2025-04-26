@@ -1,16 +1,30 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { io, Socket } from "socket.io-client";
+import { handleLogout } from "./AuthFunctions";
 
 interface WebSocketContextType {
   socket: Socket | null;
   connected: boolean;
+  logMessages: string[];
+  scanning: boolean;
+  setLogMessages: React.Dispatch<React.SetStateAction<string[]>>;
+  setScanning: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const WebSocketContext = createContext<WebSocketContextType>({ socket: null, connected: false });
+const WebSocketContext = createContext<WebSocketContextType>({
+  socket: null,
+  connected: false,
+  logMessages: [],
+  scanning: false,
+  setLogMessages: () => {},
+  setScanning: () => {},
+});
 
 export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [connected, setConnected] = useState(false);
+  const [logMessages, setLogMessages] = useState<string[]>([]);
+  const [scanning, setScanning] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -25,6 +39,26 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     newSocket.on("connect", () => setConnected(true));
     newSocket.on("disconnect", () => setConnected(false));
+    newSocket.on("token_expired", () => {
+      handleLogout();
+      window.location.href = "/";
+    });
+
+    newSocket.on("scan_update", (data) => {
+      const timestamp = new Date().toLocaleString();
+      setLogMessages(prev => [...prev, `${timestamp} - ${data.message}`]);
+      setScanning(true);
+    });
+
+    newSocket.on("scan_stop", () => {
+      setScanning(false);
+    });
+
+    newSocket.on("scan_error", (error) => {
+      const timestamp = new Date().toLocaleString();
+      setLogMessages(prev => [...prev, `${timestamp} - Error: ${error.message}`]);
+      setScanning(false);
+    });
 
     return () => {
       newSocket.disconnect();
@@ -32,7 +66,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }, []);
 
   return (
-    <WebSocketContext.Provider value={{ socket, connected }}>
+    <WebSocketContext.Provider value={{ socket, connected, logMessages, scanning, setLogMessages, setScanning }}>
       {children}
     </WebSocketContext.Provider>
   );
