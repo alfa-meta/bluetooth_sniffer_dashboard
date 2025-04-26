@@ -150,15 +150,20 @@ const Logs: React.FC = () => {
   // 🔍 Filter logic (case-insensitive, multi-field search)
   const filteredLogs = useMemo(() => {
     const search = searchTerm.trim().toLowerCase();
-    return logs.filter((log) =>
-      log.mac_address.toLowerCase().includes(search) ||
-      log.device_vendor.toLowerCase().includes(search) ||
-      String(log.target_device).toLowerCase().includes(search) ||
-      new Date(log.first_seen).toLocaleString().toLowerCase().includes(search) ||
-      new Date(log.last_seen).toLocaleString().toLowerCase().includes(search) ||
-      String(log.count).toLowerCase().includes(search) ||
-      String(log.scan_number).toLowerCase().includes(search)
-    );
+    return logs.filter((log) => {
+      const firstSeenFormatted = new Date(parseInt(log.first_seen) * 1000).toLocaleString().toLowerCase();
+      const lastSeenFormatted = new Date(parseInt(log.last_seen) * 1000).toLocaleString().toLowerCase();
+  
+      return (
+        log.mac_address.toLowerCase().includes(search) ||
+        log.device_vendor.toLowerCase().includes(search) ||
+        String(log.target_device).toLowerCase().includes(search) ||
+        firstSeenFormatted.includes(search) ||
+        lastSeenFormatted.includes(search) ||
+        String(log.count).toLowerCase().includes(search) ||
+        String(log.scan_number).toLowerCase().includes(search)
+      );
+    });
   }, [logs, searchTerm]);
 
   // 🧠 Handle sorting config
@@ -298,18 +303,26 @@ const Logs: React.FC = () => {
           </Table>
 
           <ButtonContainer>
+            <Button onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>
+              First
+            </Button>
             <Button onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))} disabled={currentPage === 1}>
               Previous
             </Button>
             <Button
-              onClick={() =>
-                setCurrentPage((prev) => Math.min(prev + 1, Math.ceil(sortedLogs.length / itemsPerPage)))
-              }
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, Math.ceil(sortedLogs.length / itemsPerPage)))}
               disabled={currentPage === Math.ceil(sortedLogs.length / itemsPerPage)}
             >
               Next
             </Button>
+            <Button
+              onClick={() => setCurrentPage(Math.ceil(sortedLogs.length / itemsPerPage))}
+              disabled={currentPage === Math.ceil(sortedLogs.length / itemsPerPage)}
+            >
+              Last
+            </Button>
           </ButtonContainer>
+
 
           <PageSpan>
             Page {currentPage} of {Math.ceil(sortedLogs.length / itemsPerPage)}
