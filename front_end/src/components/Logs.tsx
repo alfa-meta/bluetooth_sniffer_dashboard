@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import axios from "axios";
 import { FaSearch } from "react-icons/fa";
+import { handleLogout } from "../functions/AuthFunctions";
 
 interface Log {
   mac_address: string;
@@ -121,7 +122,7 @@ const Logs: React.FC = () => {
     const token = localStorage.getItem("token");
     if (!token) {
       setError("No token found, please login");
-      localStorage.removeItem("token");
+      handleLogout();
       navigate("/");
       return;
     }
@@ -135,7 +136,7 @@ const Logs: React.FC = () => {
     } catch (err) {
       console.error("Failed to fetch logs", err);
       setError("Failed to fetch logs");
-      localStorage.removeItem("token");
+      handleLogout();
       navigate("/");
     } finally {
       setIsRefreshing(false);

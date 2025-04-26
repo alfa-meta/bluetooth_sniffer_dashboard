@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../styles/AuthPage.css";
+import { handleLogout } from "../functions/AuthFunctions";
 
 interface AddNewDeviceProps {
   setIsAdding: (value: boolean) => void;
@@ -30,7 +31,7 @@ const AddNewDevice: React.FC<AddNewDeviceProps> = ({ setIsAdding, fetchDevices }
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     if (!token) {
       setError("No token found, please login");
-      localStorage.removeItem("token");
+      handleLogout();
       navigate("/");
       return;
     }

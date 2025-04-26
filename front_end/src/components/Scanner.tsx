@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { io, Socket } from "socket.io-client";
+import { handleLogout } from "../functions/AuthFunctions";
 
 interface StatusProps {
   connected: boolean;
@@ -167,7 +168,7 @@ const Scanner: React.FC = () => {
     const fetchUserEmail = async () => {
       const token = localStorage.getItem("token");
       if (!token) {
-        localStorage.removeItem("token");
+        handleLogout();
         navigate("/");
         return;
       }
@@ -184,12 +185,12 @@ const Scanner: React.FC = () => {
         const data = await response.json();
         if (!response.ok) {
           console.error("Error fetching user data:", data.message);
-          localStorage.removeItem("token");
+          handleLogout();
           navigate("/");
         }
       } catch (error) {
         console.error("Error:", error);
-        localStorage.removeItem("token");
+        handleLogout();
         navigate("/");
       }
     };
@@ -203,7 +204,7 @@ const Scanner: React.FC = () => {
     const storedToken = localStorage.getItem("token");
     if (!storedToken) {
       console.error("Missing auth token, unable to connect WebSocket");
-      localStorage.removeItem("token");
+      handleLogout();
       navigate("/");
       return;
     }

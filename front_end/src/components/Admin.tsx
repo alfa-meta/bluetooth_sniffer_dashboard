@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { FaSearch } from "react-icons/fa";
 import axios from "axios";
+import { handleLogout } from "../functions/AuthFunctions";
 
 const AdminWrapper = styled.div`
   width: 100%;
@@ -89,7 +90,7 @@ const Admin: React.FC = () => {
     const token = localStorage.getItem("token");
     if (!token) {
       setError("No token found, please login");
-      localStorage.removeItem("token");
+      handleLogout();
       navigate("/");
       return;
     }
@@ -102,12 +103,12 @@ const Admin: React.FC = () => {
       // Check error response
       if (err.response?.status === 401) {
         console.log("Session expired. Please log in again.");
-        localStorage.removeItem("token");
+        handleLogout();
         navigate("/");
       } else {
         setError("Failed to fetch user data");
       }
-      localStorage.removeItem("token");
+      handleLogout();
       navigate("/");
     }
   }, [navigate]);
@@ -123,7 +124,7 @@ const Admin: React.FC = () => {
     const token = localStorage.getItem("token");
     if (!token) {
       setError("No token found, please login");
-      localStorage.removeItem("token");
+      handleLogout();
       navigate("/");
       return;
     }
@@ -138,7 +139,7 @@ const Admin: React.FC = () => {
       } else {
         setError("Failed to delete user");
       }
-      localStorage.removeItem("token");
+      handleLogout();
       navigate("/");
     }
   };

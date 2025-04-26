@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
+import { handleLogout } from "../functions/AuthFunctions";
+
 
 const horizontalPadding: number = 18;
 
@@ -112,8 +114,7 @@ const Sidebar: React.FC<{
         ))}
         <LogoutButton
           onClick={() => {
-            localStorage.removeItem("token");
-            localStorage.removeItem("email");
+            handleLogout();
             navigate("/");
           }}
         >

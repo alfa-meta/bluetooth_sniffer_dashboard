@@ -13,7 +13,7 @@ sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 class Sniffer():
     def __init__(self, number_of_packets: int, scan_time: int, user_data: list, device_data: list, sniffer_mode="tshark"):
         print("Initialising Sniffer Object")
-        self.number_of_packets = str(number_of_packets)
+        self.number_of_packets = number_of_packets
         self.scan_time: int = scan_time
         self.last_check = datetime.now()
         self.user_data: list = user_data
@@ -23,13 +23,55 @@ class Sniffer():
         print(f"{len(user_data)} users found in the Database")
         print(f"{len(device_data)} devices found in the Database")
 
+    # def run_bluetoothctl(self):
+    #     """
+    #         This function interacts with the bluetoothctl command to scan for nearby Bluetooth devices,
+    #         and returns the output as a string.
+    #     """
+    #     try:
+    #         # Start the bluetoothctl process
+    #         process = subprocess.Popen(
+    #             ["bluetoothctl"],
+    #             stdin=subprocess.PIPE,
+    #             stdout=subprocess.PIPE,
+    #             stderr=subprocess.PIPE,
+    #             text=True
+    #         )
+            
+    #         # Send commands to bluetoothctl
+    #         commands = [
+    #             "power on\n",
+    #             "scan on\n",
+    #         ]
+            
+    #         # Write commands to the process
+    #         for command in commands:
+    #             process.stdin.write(command)
+    #             process.stdin.flush()
+            
+
+    #         print(f"Scanning for Bluetooth Devices for {self.scan_time} seconds.")
+    #         # Allow time for scanning
+    #         time.sleep(self.scan_time)
+            
+    #         # Turn off scanning and exit
+    #         process.stdin.write("scan off\n")
+    #         process.stdin.write("exit\n")
+    #         process.stdin.flush()
+            
+    #         # Capture output and errors
+    #         output, error = process.communicate()
+
+    #         if error:
+    #             raise RuntimeError(f"Error occurred: {error.strip()}")
+            
+    #         return output
+
+    #     except Exception as e:
+    #         return f"An error occurred: {str(e)}"
+
     def run_bluetoothctl(self):
-        """
-            This function interacts with the bluetoothctl command to scan for nearby Bluetooth devices,
-            and returns the output as a string.
-        """
         try:
-            # Start the bluetoothctl process
             process = subprocess.Popen(
                 ["bluetoothctl"],
                 stdin=subprocess.PIPE,
@@ -37,37 +79,86 @@ class Sniffer():
                 stderr=subprocess.PIPE,
                 text=True
             )
-            
-            # Send commands to bluetoothctl
+
             commands = [
                 "power on\n",
                 "scan on\n",
             ]
-            
-            # Write commands to the process
+
             for command in commands:
                 process.stdin.write(command)
                 process.stdin.flush()
-            
-            print(f"Scanning for Bluetooth Devices for {self.scan_time} seconds.")
-            # Allow time for scanning
-            time.sleep(self.scan_time)
-            
-            # Turn off scanning and exit
+
+            print(f"Scanning until {self.number_of_packets} unique Bluetooth devices are found.")
+
+            scanned_devices = {}
+            start_time = time.time()
+
+            while True:
+                output = process.stdout.readline()
+                if "Device" in output:
+                    parts = output.split()
+                    if len(parts) >= 4:
+                        mac_address = parts[2].strip()
+                        device_name = " ".join(parts[3:]).strip()
+                        scanned_devices[mac_address.lower()] = device_name
+                        print(f"{mac_address}")
+                
+                if len(scanned_devices) >= self.number_of_packets:
+                    print(f"Found {self.number_of_packets} devices, stopping scan.")
+                    break
+
+                # Optional timeout to avoid infinite loop
+                if time.time() - start_time > self.scan_time:
+                    print(f"Timeout reached at {time.time() - start_time}, stopping scan.")
+                    break
+
             process.stdin.write("scan off\n")
             process.stdin.write("exit\n")
             process.stdin.flush()
-            
-            # Capture output and errors
-            output, error = process.communicate()
 
-            if error:
-                raise RuntimeError(f"Error occurred: {error.strip()}")
+            # Finish process
+            process.communicate()
+
+            # --- Here comes your compare_bluetoothctl_output logic directly ---
+            from collections import defaultdict
+
+            # Build formatted device list for logs
+            formatted_devices_list = []
+            for mac, name in scanned_devices.items():
+                current_device = {
+                    "mac_address": mac,
+                    "device_name": name,
+                    "timestamp": time.time()
+                }
+                formatted_devices_list.append(current_device)
+
+            # Check against known devices
+            email_device_map = defaultdict(list)
+            for mac, name in scanned_devices.items():
+                for device in self.device_data:
+                    if device['mac_address'].lower() == mac:
+                        email_device_map[device['email']].append({
+                            "mac_address": mac,
+                            "device_name": device['device_name'],
+                            "timestamp": time.time()
+                        })
+
+            for email, devices in email_device_map.items():
+                message = "Matched Devices:\n"
+                for d in devices:
+                    message += f"- {d['device_name']} ({d['mac_address']}) at {time.ctime(d['timestamp'])}\n"
+                
+                print(message)
+                send_email(text=message, email=email)
             
-            return output
+            update_logs(device_list=formatted_devices_list)
+
+            return formatted_devices_list
 
         except Exception as e:
             return f"An error occurred: {str(e)}"
+
 
     def has_three_minutes_passed(self):
         """
@@ -132,7 +223,7 @@ class Sniffer():
     def output_source_addresses(self, json_file_path: str):
         if self.sniffer_mode == "bluetoothctl":
             output = self.run_bluetoothctl()
-            self.compare_bluetoothctl_output(output)
+            #self.compare_bluetoothctl_output(output)
             return True
 
         print("Sniffer mode has not been recognised.")

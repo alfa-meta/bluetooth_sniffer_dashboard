@@ -9,6 +9,7 @@ import Admin from "../components/Admin"; // Corrected import
 import Devices from "../components/Devices";
 import Settings from "../components/Settings";
 import styled from "styled-components";
+import { handleLogout } from "../functions/AuthFunctions";
 
 const DashboardWrapper = styled.div`
   display: flex;
@@ -65,8 +66,7 @@ const Dashboard: React.FC = () => {
     const token = localStorage.getItem("token");
 
     if (!token) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("email");
+      handleLogout();
       navigate("/");
     }
   }, [navigate]);

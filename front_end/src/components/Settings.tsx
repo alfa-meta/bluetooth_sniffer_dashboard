@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
+import { handleLogout } from "../functions/AuthFunctions";
 
 // Styled component definitions
 const SettingsWrapper = styled.div`
@@ -121,7 +122,7 @@ const Settings: React.FC = () => {
     const fetchUserEmail = async () => {
       const token = localStorage.getItem("token");
       if (!token) {
-        localStorage.removeItem("token");
+        handleLogout();
         navigate("/");
         return;
       }
@@ -141,12 +142,12 @@ const Settings: React.FC = () => {
           localStorage.setItem("email", data.email);
         } else {
           console.error("Error fetching user data:", data.message);
-          localStorage.removeItem("token");
+          handleLogout();
           navigate("/");
         }
       } catch (error) {
         console.error("Error:", error);
-        localStorage.removeItem("token");
+        handleLogout();
         navigate("/");
       }
     };

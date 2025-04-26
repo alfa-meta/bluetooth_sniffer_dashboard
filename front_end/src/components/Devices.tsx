@@ -4,6 +4,7 @@ import styled from "styled-components";
 import axios from "axios";
 import { FaSearch } from "react-icons/fa";
 import AddNewDevice from "./AddNewDevice";
+import { handleLogout } from "../functions/AuthFunctions";
 
 interface Device {
   mac_address: string;
@@ -127,7 +128,7 @@ const Devices: React.FC = () => {
     const token = localStorage.getItem("token");
     if (!token) {
       setError("No token found, please login");
-      localStorage.removeItem("token");
+      handleLogout();
       navigate("/");
       return;
     }
@@ -138,7 +139,7 @@ const Devices: React.FC = () => {
       setDevices(response.data);
     } catch (err) {
       console.error("Failed to fetch device data", err);
-      localStorage.removeItem("token");
+      handleLogout();
       navigate("/");
     }
   }, [navigate]);
@@ -154,7 +155,7 @@ const Devices: React.FC = () => {
     const token = localStorage.getItem("token");
     if (!token) {
       setError("No token found, please login");
-      localStorage.removeItem("token");
+      handleLogout();
       navigate("/");
       return;
     }
@@ -171,7 +172,7 @@ const Devices: React.FC = () => {
       } else {
         setError("Failed to delete device");
       }
-      localStorage.removeItem("token");
+      handleLogout();
       navigate("/");
     } finally {
       setIsDeleting(false);
