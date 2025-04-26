@@ -204,13 +204,16 @@ const Devices: React.FC = () => {
     }
   };
 
-  const filteredDevices = devices.filter(
-    (device) =>
+  const filteredDevices = devices.filter((device) => {
+    const dateString = new Date(parseInt(device.date_added) * 1000).toLocaleString();
+    return (
       device.device_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       device.mac_address.toLowerCase().includes(searchTerm.toLowerCase()) ||
       device.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      device.device_vendor.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+      device.device_vendor.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      dateString.toLowerCase().includes(searchTerm.toLowerCase()) // Search by formatted date
+    );
+  });
   
 
   const sortedDevices = [...filteredDevices];
