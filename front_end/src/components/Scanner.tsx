@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import { io, Socket } from "socket.io-client";
+import { useWebSocket } from "../functions/WebSocketContext";
 import { handleLogout } from "../functions/AuthFunctions";
 
 interface StatusProps {
@@ -30,25 +30,8 @@ const ScanButton = styled.button`
   border-radius: 5px;
   cursor: pointer;
   transition: background 0.3s;
-
   &:hover {
     background: var(--highlight);
-  }
-`;
-
-const ConnectButton = styled.button<StatusProps>`
-  margin-top: 10px;
-  padding: 10px 20px;
-  font-size: 16px;
-  background: ${({ connected }) => (connected ? "red" : "var(--button-bg)")};
-  color: var(--text-light);
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background 0.3s;
-
-  &:hover {
-    background: ${({ connected }) => (connected ? "#cc0000" : "var(--highlight)")};
   }
 `;
 
@@ -73,12 +56,9 @@ const TerminalBox = styled.div`
   border-radius: 5px;
   overflow-y: auto;
   border: 2px solid #444;
-
-  /* Firefox */
   scrollbar-width: thin;
   scrollbar-color: #555 #222;
 
-  /* Webkit browsers */
   &::-webkit-scrollbar {
     width: 8px;
   }
@@ -104,173 +84,97 @@ const LOG_MESSAGES_STORAGE_KEY = "scanner_log_messages";
 const SCANNING_STATUS_STORAGE_KEY = "scanner_scanning_status";
 
 const Scanner: React.FC = () => {
-  const [scanning, setScanning] = useState<boolean>(() => {
-    const savedScanningStatus = localStorage.getItem(SCANNING_STATUS_STORAGE_KEY);
-    return savedScanningStatus ? JSON.parse(savedScanningStatus) : false;
-  });
-  
-  const [logMessages, setLogMessages] = useState<string[]>(() => {
-    const savedLogMessages = localStorage.getItem(LOG_MESSAGES_STORAGE_KEY);
-    return savedLogMessages ? JSON.parse(savedLogMessages) : [];
-  });
-  
-  const [socket, setSocket] = useState<Socket | null>(null);
-  const [connected, setConnected] = useState(false);
+  const { socket, connected } = useWebSocket();
   const navigate = useNavigate();
   const terminalRef = useRef<HTMLDivElement>(null);
-  const observerRef = useRef<MutationObserver | null>(null);
 
-  // Helper function to add a timestamp to each log message
+  const [scanning, setScanning] = useState<boolean>(() => {
+    const saved = localStorage.getItem(SCANNING_STATUS_STORAGE_KEY);
+    return saved ? JSON.parse(saved) : false;
+  });
+
+  const [logMessages, setLogMessages] = useState<string[]>(() => {
+    const saved = localStorage.getItem(LOG_MESSAGES_STORAGE_KEY);
+    return saved ? JSON.parse(saved) : [];
+  });
+
   const addLogMessage = (msg: string) => {
     const timestamp = new Date().toLocaleString();
     setLogMessages((prev) => [...prev, `${timestamp} - ${msg}`]);
   };
 
-  // Save logMessages to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem(LOG_MESSAGES_STORAGE_KEY, JSON.stringify(logMessages));
   }, [logMessages]);
 
-  // Save scanning status to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem(SCANNING_STATUS_STORAGE_KEY, JSON.stringify(scanning));
   }, [scanning]);
 
-  // Set up mutation observer for DOM changes (auto-scroll)
   useEffect(() => {
-    if (terminalRef.current) {
-      observerRef.current = new MutationObserver(() => {
-        if (terminalRef.current) {
-          terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
-        }
-      });
-      observerRef.current.observe(terminalRef.current, {
-        childList: true,
-        subtree: true
-      });
-    }
-    
-    return () => {
-      if (observerRef.current) {
-        observerRef.current.disconnect();
-      }
-    };
-  }, []);
-
-  // Ensure terminal scrolls to the bottom when log messages change
-  useEffect(() => {
-    if (terminalRef.current) {
-      terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
-    }
-  }, [logMessages]);
-
-  useEffect(() => {
-    const fetchUserEmail = async () => {
+    const fetchUser = async () => {
       const token = localStorage.getItem("token");
       if (!token) {
         handleLogout();
         navigate("/");
         return;
       }
-
       try {
-        const response = await fetch("http://localhost:5000/protected", {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
+        const res = await fetch("http://localhost:5000/protected", {
+          headers: { Authorization: `Bearer ${token}` },
         });
-
-        const data = await response.json();
-        if (!response.ok) {
-          console.error("Error fetching user data:", data.message);
+        if (!res.ok) {
           handleLogout();
           navigate("/");
         }
       } catch (error) {
-        console.error("Error:", error);
         handleLogout();
         navigate("/");
       }
     };
-
-    fetchUserEmail();
+    fetchUser();
   }, [navigate]);
 
-  const connectSocket = () => {
-    if (socket) return; // Already connected
+  useEffect(() => {
+    if (!socket) return;
 
-    const storedToken = localStorage.getItem("token");
-    if (!storedToken) {
-      console.error("Missing auth token, unable to connect WebSocket");
-      handleLogout();
-      navigate("/");
-      return;
-    }
-
-    const newSocket = io("http://127.0.0.1:5001", {
-      transports: ["websocket"],
-      query: { token: storedToken },
-    });
-    
-    newSocket.on("connect", () => {
-      console.log("WebSocket Connected!");
-      setConnected(true);
-      addLogMessage("WebSocket Connected!");
-    });
-
-    newSocket.on("disconnect", () => {
-      console.log("WebSocket Disconnected!");
-      setConnected(false);
-      setScanning(false);
-      addLogMessage("WebSocket Disconnected!");
-    });
-
-    newSocket.on("connect_error", (error) => {
-      console.error("WebSocket Connection Error:", error);
-      setConnected(false);
-      addLogMessage(`Connection Error: ${error.message}`);
-    });
-
-    newSocket.on("scan_update", (data: ScanResponse) => {
+    const handleScanUpdate = (data: ScanResponse) => {
       addLogMessage(data.message);
       setScanning(true);
-    });
-
-    newSocket.on("scan_stop", (data: ScanResponse) => {
-      setScanning(false);
-    });
-
-    newSocket.on("scan_error", (error) => {
+    };
+    const handleScanStop = () => setScanning(false);
+    const handleScanError = (error: any) => {
       addLogMessage(`Error: ${error.message}`);
       setScanning(false);
-    });
+    };
 
-    setSocket(newSocket);
-  };
+    socket.on("scan_update", handleScanUpdate);
+    socket.on("scan_stop", handleScanStop);
+    socket.on("scan_error", handleScanError);
 
-  const disconnectSocket = () => {
-    if (socket) {
-      socket.emit("websocket_handle_disconnect", { reason: "User initiated disconnect" });
-      socket.disconnect();
-      setSocket(null);
-      setConnected(false);
-      addLogMessage("WebSocket Disconnected.");
+    return () => {
+      socket.off("scan_update", handleScanUpdate);
+      socket.off("scan_stop", handleScanStop);
+      socket.off("scan_error", handleScanError);
+    };
+  }, [socket]);
+
+  useEffect(() => {
+    if (terminalRef.current) {
+      terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
     }
-  };
+  }, [logMessages]);
 
   const toggleScanning = () => {
     if (!socket) return;
-  
+
     if (!scanning) {
       const settings = {
         theme: localStorage.getItem("theme") || "",
         packets: localStorage.getItem("packets") || "100",
         scanTime: localStorage.getItem("scanTime") || "15",
-        email: localStorage.getItem("email")
+        email: localStorage.getItem("email"),
       };
-  
       socket.emit("websocket_start_scan", settings);
     } else {
       socket.emit("websocket_stop_scan");
@@ -278,25 +182,17 @@ const Scanner: React.FC = () => {
     }
     setScanning(!scanning);
   };
-  
 
-  const clearLogs = () => {
-    setLogMessages([]);
-  };
+  const clearLogs = () => setLogMessages([]);
 
   return (
     <ScannerWrapper>
       <h2>Scanner</h2>
       <div style={{ display: "flex", gap: "10px" }}>
-        <ConnectButton onClick={connected ? disconnectSocket : connectSocket} connected={connected}>
-          {connected ? "Disconnect" : "Connect"}
-        </ConnectButton>
-        
         <ScanButton onClick={toggleScanning} disabled={!connected}>
           {scanning ? "Stop Scanning" : "Start Scanning"}
         </ScanButton>
-        
-        <button 
+        <button
           onClick={clearLogs}
           style={{
             padding: "15px 30px",
@@ -305,7 +201,7 @@ const Scanner: React.FC = () => {
             color: "white",
             border: "none",
             borderRadius: "5px",
-            cursor: "pointer"
+            cursor: "pointer",
           }}
         >
           Clear Terminal
@@ -313,11 +209,9 @@ const Scanner: React.FC = () => {
       </div>
       <Status connected={connected}>{connected ? "Connected" : "Disconnected"}</Status>
       <TerminalBox ref={terminalRef}>
-        <div>
-          {logMessages.map((msg, index) => (
-            <p key={index}>{msg}</p>
-          ))}
-        </div>
+        {logMessages.map((msg, index) => (
+          <p key={index}>{msg}</p>
+        ))}
       </TerminalBox>
     </ScannerWrapper>
   );

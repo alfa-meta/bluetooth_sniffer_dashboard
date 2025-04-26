@@ -5,6 +5,7 @@ import "./styles/globals.css";
 import AuthPage from "./AuthPage";
 import Dashboard from "./pages/Dashboard";
 import ProtectedRoute from "./ProtectedRoute";
+import { WebSocketProvider } from "./functions/WebSocketContext";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -13,14 +14,16 @@ const root = ReactDOM.createRoot(
 root.render(
   <React.StrictMode>
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<AuthPage />} />
-        <Route element={<ProtectedRoute />}>
-          <Route path="/dashboard" element={<Dashboard />} />
-        </Route>
-        {/* Optional: Catch-all route */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <WebSocketProvider>
+        <Routes>
+          <Route path="/" element={<AuthPage />} />
+          <Route element={<ProtectedRoute />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+          </Route>
+          {/* Optional: Catch-all route */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </WebSocketProvider>
     </BrowserRouter>
   </React.StrictMode>
 );
