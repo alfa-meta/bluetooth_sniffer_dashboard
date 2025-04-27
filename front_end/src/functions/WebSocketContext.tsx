@@ -37,8 +37,17 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     setSocket(newSocket);
 
-    newSocket.on("connect", () => setConnected(true));
-    newSocket.on("disconnect", () => setConnected(false));
+    newSocket.on("connect", () => {
+      newSocket.emit("websocket_handle_connect");
+      setConnected(true);
+    });
+    
+    newSocket.on("disconnect", () =>{
+      newSocket.emit("websocket_handle_disconnect");
+      setConnected(false);
+    })
+    
+    newSocket.on("websocket_handle_disconnect", () => setConnected(false));
     newSocket.on("token_expired", () => {
       handleLogout();
       window.location.href = "/";

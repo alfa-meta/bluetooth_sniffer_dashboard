@@ -7,7 +7,7 @@ from .models import db
 
 bcrypt = Bcrypt()
 jwt = JWTManager()
-socketio = SocketIO(cors_allowed_origins=["http://localhost:3000", "http://localhost:5000"])
+socketio = SocketIO(cors_allowed_origins="*")
 
 def populate_device_vendors():
     from .models import DeviceVendor
